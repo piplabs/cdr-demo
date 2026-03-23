@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "cd cdr-sdk && pnpm install --frozen-lockfile && pnpm build --filter=@piplabs/cdr-contracts --filter=@piplabs/cdr-crypto --filter=@piplabs/cdr-sdk && cd .. && node scripts/copy-wasm.js && next build",
     "start": "next start",
     "postinstall": "node scripts/copy-wasm.js"
   },
@@ -15,9 +15,9 @@
     "react-dom": "^18.3",
     "@privy-io/react-auth": "^2",
     "viem": "^2.21",
-    "@piplabs/cdr-sdk": "file:../cdr-sdk/packages/sdk",
-    "@piplabs/cdr-crypto": "file:../cdr-sdk/packages/crypto",
-    "@piplabs/cdr-contracts": "file:../cdr-sdk/packages/contracts"
+    "@piplabs/cdr-sdk": "link:./cdr-sdk/packages/sdk",
+    "@piplabs/cdr-crypto": "link:./cdr-sdk/packages/crypto",
+    "@piplabs/cdr-contracts": "link:./cdr-sdk/packages/contracts"
   },
   "devDependencies": {
     "typescript": "^5.5",
@@ -30,8 +30,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@piplabs/cdr-contracts": "file:../cdr-sdk/packages/contracts",
-      "@piplabs/cdr-crypto": "file:../cdr-sdk/packages/crypto"
+      "@piplabs/cdr-contracts": "link:./cdr-sdk/packages/contracts",
+      "@piplabs/cdr-crypto": "link:./cdr-sdk/packages/crypto"
     }
   }
 }

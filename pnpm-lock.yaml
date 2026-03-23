@@ -5,22 +5,22 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@piplabs/cdr-contracts': file:../cdr-sdk/packages/contracts
-  '@piplabs/cdr-crypto': file:../cdr-sdk/packages/crypto
+  '@piplabs/cdr-contracts': link:./cdr-sdk/packages/contracts
+  '@piplabs/cdr-crypto': link:./cdr-sdk/packages/crypto
 
 importers:
 
   .:
     dependencies:
       '@piplabs/cdr-contracts':
-        specifier: file:../cdr-sdk/packages/contracts
-        version: file:../cdr-sdk/packages/contracts(viem@2.47.6(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76))
+        specifier: link:cdr-sdk/packages/contracts
+        version: link:cdr-sdk/packages/contracts
       '@piplabs/cdr-crypto':
-        specifier: file:../cdr-sdk/packages/crypto
-        version: file:../cdr-sdk/packages/crypto
+        specifier: link:cdr-sdk/packages/crypto
+        version: link:cdr-sdk/packages/crypto
       '@piplabs/cdr-sdk':
-        specifier: file:../cdr-sdk/packages/sdk
-        version: file:../cdr-sdk/packages/sdk(viem@2.47.6(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76))
+        specifier: link:./cdr-sdk/packages/sdk
+        version: link:cdr-sdk/packages/sdk
       '@privy-io/react-auth':
         specifier: ^2
         version: 2.25.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(@solana/web3.js@1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@6.0.6))(@types/react@18.3.28)(bs58@6.0.0)(bufferutil@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@18.3.1))(utf-8-validate@6.0.6)(zod@3.25.76)
@@ -390,19 +390,6 @@ packages:
 
   '@phosphor-icons/webcomponents@2.1.5':
     resolution: {integrity: sha512-JcvQkZxvcX2jK+QCclm8+e8HXqtdFW9xV4/kk2aL9Y3dJA2oQVt+pzbv1orkumz3rfx4K9mn9fDoMr1He1yr7Q==}
-
-  '@piplabs/cdr-contracts@file:../cdr-sdk/packages/contracts':
-    resolution: {directory: ../cdr-sdk/packages/contracts, type: directory}
-    peerDependencies:
-      viem: ^2.21
-
-  '@piplabs/cdr-crypto@file:../cdr-sdk/packages/crypto':
-    resolution: {directory: ../cdr-sdk/packages/crypto, type: directory}
-
-  '@piplabs/cdr-sdk@file:../cdr-sdk/packages/sdk':
-    resolution: {directory: ../cdr-sdk/packages/sdk, type: directory}
-    peerDependencies:
-      viem: ^2.21
 
   '@privy-io/api-base@1.7.0':
     resolution: {integrity: sha512-ji6ARQAAuW/FzRTgft9NCjRuouWX9t+J7JMmvLPsnXQJDFEV9mqh4sWXZhQ8ddTq/iDZ4z/yz1ORJqN8bYAi4Q==}
@@ -3263,22 +3250,6 @@ snapshots:
   '@phosphor-icons/webcomponents@2.1.5':
     dependencies:
       lit: 3.3.0
-
-  '@piplabs/cdr-contracts@file:../cdr-sdk/packages/contracts(viem@2.47.6(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76))':
-    dependencies:
-      viem: 2.47.6(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76)
-
-  '@piplabs/cdr-crypto@file:../cdr-sdk/packages/crypto':
-    dependencies:
-      '@noble/ciphers': 1.3.0
-      '@noble/curves': 1.9.7
-      '@noble/hashes': 1.8.0
-
-  '@piplabs/cdr-sdk@file:../cdr-sdk/packages/sdk(viem@2.47.6(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76))':
-    dependencies:
-      '@piplabs/cdr-contracts': file:../cdr-sdk/packages/contracts(viem@2.47.6(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76))
-      '@piplabs/cdr-crypto': file:../cdr-sdk/packages/crypto
-      viem: 2.47.6(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76)
 
   '@privy-io/api-base@1.7.0':
     dependencies:
