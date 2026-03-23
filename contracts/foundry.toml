@@ -1,0 +1,13 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["node_modules", "lib"]
+solc = "0.8.26"
+
+remappings = [
+    "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+    "@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/",
+]
+
+[rpc_endpoints]
+cdr_devnet = "http://52.243.51.231:8545"

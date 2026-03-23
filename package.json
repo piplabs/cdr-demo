@@ -1,0 +1,37 @@
+{
+  "name": "cdr-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "postinstall": "node scripts/copy-wasm.js"
+  },
+  "dependencies": {
+    "next": "^14.2",
+    "react": "^18.3",
+    "react-dom": "^18.3",
+    "@privy-io/react-auth": "^2",
+    "viem": "^2.21",
+    "@piplabs/cdr-sdk": "file:../cdr-sdk/packages/sdk",
+    "@piplabs/cdr-crypto": "file:../cdr-sdk/packages/crypto",
+    "@piplabs/cdr-contracts": "file:../cdr-sdk/packages/contracts"
+  },
+  "devDependencies": {
+    "typescript": "^5.5",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/node": "^20",
+    "tailwindcss": "^3.4",
+    "postcss": "^8",
+    "autoprefixer": "^10"
+  },
+  "pnpm": {
+    "overrides": {
+      "@piplabs/cdr-contracts": "file:../cdr-sdk/packages/contracts",
+      "@piplabs/cdr-crypto": "file:../cdr-sdk/packages/crypto"
+    }
+  }
+}
