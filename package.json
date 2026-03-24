@@ -15,6 +15,7 @@
     "react-dom": "^18.3",
     "@privy-io/react-auth": "^2",
     "viem": "^2.21",
+    "@noble/curves": "^1.6",
     "@piplabs/cdr-sdk": "link:./cdr-sdk/packages/sdk",
     "@piplabs/cdr-crypto": "link:./cdr-sdk/packages/crypto",
     "@piplabs/cdr-contracts": "link:./cdr-sdk/packages/contracts"
