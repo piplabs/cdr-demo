@@ -1,6 +1,6 @@
 import { createWalletClient, createPublicClient, http, parseEther, isAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { cdrDevnet } from "@/config/chain";
+import { cdrDevnet, RPC_URL } from "@/config/chain";
 import { NextResponse } from "next/server";
 
 const cooldowns = new Map<string, number>();
@@ -34,12 +34,12 @@ export async function POST(request: Request) {
   const walletClient = createWalletClient({
     account,
     chain: cdrDevnet,
-    transport: http(cdrDevnet.rpcUrls.default.http[0]),
+    transport: http(RPC_URL),
   });
 
   const publicClient = createPublicClient({
     chain: cdrDevnet,
-    transport: http(cdrDevnet.rpcUrls.default.http[0]),
+    transport: http(RPC_URL),
   });
 
   try {
