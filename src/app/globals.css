@@ -4,4 +4,9 @@
 
 body {
   @apply bg-gray-950 text-white antialiased;
+  background-color: #000;
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
 }

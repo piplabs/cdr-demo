@@ -8,8 +8,8 @@ import { Nav } from "@/components/nav";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CDR Demo",
-  description: "Encrypt and decrypt data using CDR vaults on Story L1",
+  title: "CDR: Privacy Infra for AI",
+  description: "Threshold-encrypted data vaults. Share secrets, trade data, run confidential AI — no single point of trust.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <WasmProvider>
             <div className="flex min-h-screen flex-col">
               <Nav />
-              <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-12">
+              <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-12">
                 {children}
               </main>
             </div>

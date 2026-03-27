@@ -11,6 +11,12 @@ export const CONTRACTS = {
   LICENSING_MODULE: "0x04fbd8a2e56dd85CFD5500A4A4DfA955B9f1dE6f" as const,
   // CDRVaultNFT — set after deployment via env var
   CDR_VAULT_NFT: (process.env.NEXT_PUBLIC_CDR_VAULT_NFT ?? "") as `0x${string}`,
+  // DataMarketplace — set after deployment via env var
+  DATA_MARKETPLACE: (process.env.NEXT_PUBLIC_DATA_MARKETPLACE ?? "") as `0x${string}`,
+  // DePIN Backend — set after deployment via env var
+  DEPIN_BACKEND: (process.env.NEXT_PUBLIC_DEPIN_BACKEND ?? "") as `0x${string}`,
+  // ConfidentialInference — set after deployment via env var
+  CONFIDENTIAL_INFERENCE: (process.env.NEXT_PUBLIC_CONFIDENTIAL_INFERENCE ?? "") as `0x${string}`,
 } as const;
 
 // ============================================================
@@ -182,5 +188,246 @@ export const licenseTokenAbi = [
     inputs: [{ name: "licensorIpId", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
     stateMutability: "view",
+  },
+] as const;
+
+/** ConfidentialInference ABI */
+export const inferenceAbi = [
+  {
+    type: "function", name: "registerModel",
+    inputs: [{ name: "feePerQuery", type: "uint256" }, { name: "teeImageHash", type: "bytes32" }],
+    outputs: [{ name: "modelId", type: "uint256" }],
+    stateMutability: "payable",
+  },
+  {
+    type: "function", name: "submitQuery",
+    inputs: [{ name: "modelId", type: "uint256" }],
+    outputs: [{ name: "queryId", type: "uint256" }],
+    stateMutability: "payable",
+  },
+  {
+    type: "function", name: "getModel",
+    inputs: [{ name: "modelId", type: "uint256" }],
+    outputs: [
+      { name: "provider", type: "address" }, { name: "feePerQuery", type: "uint256" },
+      { name: "weightsVaultUuid", type: "uint32" }, { name: "teeImageHash", type: "bytes32" },
+      { name: "status", type: "uint8" }, { name: "totalQueries", type: "uint256" },
+      { name: "totalEarnings", type: "uint256" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function", name: "getQuery",
+    inputs: [{ name: "queryId", type: "uint256" }],
+    outputs: [
+      { name: "user", type: "address" }, { name: "modelId", type: "uint256" },
+      { name: "inputVaultUuid", type: "uint32" }, { name: "resultVaultUuid", type: "uint32" },
+      { name: "status", type: "uint8" }, { name: "attestation", type: "bytes" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function", name: "getModelCount",
+    inputs: [], outputs: [{ name: "", type: "uint256" }], stateMutability: "view",
+  },
+  {
+    type: "function", name: "getUserQueries",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [{ name: "", type: "uint256[]" }], stateMutability: "view",
+  },
+  {
+    type: "function", name: "getProviderModels",
+    inputs: [{ name: "provider", type: "address" }],
+    outputs: [{ name: "", type: "uint256[]" }], stateMutability: "view",
+  },
+  {
+    type: "event", name: "ModelRegistered",
+    inputs: [
+      { name: "modelId", type: "uint256", indexed: true },
+      { name: "provider", type: "address", indexed: true },
+      { name: "feePerQuery", type: "uint256", indexed: false },
+      { name: "weightsVaultUuid", type: "uint32", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "QuerySubmitted",
+    inputs: [
+      { name: "queryId", type: "uint256", indexed: true },
+      { name: "modelId", type: "uint256", indexed: true },
+      { name: "user", type: "address", indexed: true },
+      { name: "inputVaultUuid", type: "uint32", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "ResultSubmitted",
+    inputs: [
+      { name: "queryId", type: "uint256", indexed: true },
+      { name: "resultVaultUuid", type: "uint32", indexed: false },
+      { name: "attestation", type: "bytes", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "QueryCompleted",
+    inputs: [
+      { name: "queryId", type: "uint256", indexed: true },
+      { name: "user", type: "address", indexed: true },
+    ],
+  },
+] as const;
+
+/** DataMarketplace ABI */
+export const marketplaceAbi = [
+  {
+    type: "function", name: "setup",
+    inputs: [{ name: "accessFee", type: "uint256" }],
+    outputs: [{ name: "listingId", type: "uint256" }],
+    stateMutability: "payable",
+  },
+  {
+    type: "function", name: "upload",
+    inputs: [{ name: "listingId", type: "uint256" }, { name: "ipfsHash", type: "string" }],
+    outputs: [], stateMutability: "nonpayable",
+  },
+  {
+    type: "function", name: "purchase",
+    inputs: [{ name: "listingId", type: "uint256" }, { name: "requesterPubKey", type: "bytes" }],
+    outputs: [], stateMutability: "payable",
+  },
+  {
+    type: "function", name: "getListing",
+    inputs: [{ name: "listingId", type: "uint256" }],
+    outputs: [
+      { name: "owner", type: "address" }, { name: "accessFee", type: "uint256" },
+      { name: "cdrUuid", type: "uint32" }, { name: "ipfsHash", type: "string" },
+      { name: "uploaded", type: "bool" }, { name: "totalSales", type: "uint256" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function", name: "getListingCount",
+    inputs: [], outputs: [{ name: "", type: "uint256" }], stateMutability: "view",
+  },
+  {
+    type: "function", name: "hasPurchased",
+    inputs: [{ name: "listingId", type: "uint256" }, { name: "buyer", type: "address" }],
+    outputs: [{ name: "", type: "bool" }], stateMutability: "view",
+  },
+  {
+    type: "event", name: "ListingCreated",
+    inputs: [
+      { name: "listingId", type: "uint256", indexed: true },
+      { name: "owner", type: "address", indexed: true },
+      { name: "cdrUuid", type: "uint32", indexed: true },
+      { name: "accessFee", type: "uint256", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "DataUploaded",
+    inputs: [
+      { name: "listingId", type: "uint256", indexed: true },
+      { name: "ipfsHash", type: "string", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "DataPurchased",
+    inputs: [
+      { name: "listingId", type: "uint256", indexed: true },
+      { name: "buyer", type: "address", indexed: true },
+      { name: "fee", type: "uint256", indexed: false },
+    ],
+  },
+] as const;
+
+export const depinAbi = [
+  {
+    type: "function", name: "createRequest",
+    inputs: [{ name: "teeImageHash", type: "bytes32" }],
+    outputs: [{ name: "requestId", type: "uint256" }],
+    stateMutability: "payable",
+  },
+  {
+    type: "function", name: "respondToRequest",
+    inputs: [{ name: "requestId", type: "uint256" }],
+    outputs: [{ name: "responseId", type: "uint256" }],
+    stateMutability: "payable",
+  },
+  {
+    type: "function", name: "setEvalIpfsHash",
+    inputs: [{ name: "requestId", type: "uint256" }, { name: "ipfsHash", type: "string" }],
+    outputs: [], stateMutability: "nonpayable",
+  },
+  {
+    type: "function", name: "setDataIpfsHash",
+    inputs: [{ name: "responseId", type: "uint256" }, { name: "ipfsHash", type: "string" }],
+    outputs: [], stateMutability: "nonpayable",
+  },
+  {
+    type: "function", name: "getRequest",
+    inputs: [{ name: "requestId", type: "uint256" }],
+    outputs: [
+      { name: "requester", type: "address" }, { name: "bounty", type: "uint256" },
+      { name: "evalVaultUuid", type: "uint32" }, { name: "evalIpfsHash", type: "string" },
+      { name: "teeImageHash", type: "bytes32" }, { name: "status", type: "uint8" },
+      { name: "responseCount", type: "uint256" }, { name: "acceptedCount", type: "uint256" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function", name: "getResponse",
+    inputs: [{ name: "responseId", type: "uint256" }],
+    outputs: [
+      { name: "provider", type: "address" }, { name: "requestId", type: "uint256" },
+      { name: "dataVaultUuid", type: "uint32" }, { name: "dataIpfsHash", type: "string" },
+      { name: "status", type: "uint8" }, { name: "evalAttestation", type: "bytes" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function", name: "getRequestCount",
+    inputs: [], outputs: [{ name: "", type: "uint256" }], stateMutability: "view",
+  },
+  {
+    type: "function", name: "getRequestResponses",
+    inputs: [{ name: "requestId", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256[]" }], stateMutability: "view",
+  },
+  {
+    type: "function", name: "getProviderResponses",
+    inputs: [{ name: "provider", type: "address" }],
+    outputs: [{ name: "", type: "uint256[]" }], stateMutability: "view",
+  },
+  {
+    type: "event", name: "RequestCreated",
+    inputs: [
+      { name: "requestId", type: "uint256", indexed: true },
+      { name: "requester", type: "address", indexed: true },
+      { name: "bounty", type: "uint256", indexed: false },
+      { name: "evalVaultUuid", type: "uint32", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "ResponseSubmitted",
+    inputs: [
+      { name: "responseId", type: "uint256", indexed: true },
+      { name: "requestId", type: "uint256", indexed: true },
+      { name: "provider", type: "address", indexed: true },
+      { name: "dataVaultUuid", type: "uint32", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "EvalCompleted",
+    inputs: [
+      { name: "responseId", type: "uint256", indexed: true },
+      { name: "passed", type: "bool", indexed: false },
+      { name: "attestation", type: "bytes", indexed: false },
+    ],
+  },
+  {
+    type: "event", name: "BountyReleased",
+    inputs: [
+      { name: "responseId", type: "uint256", indexed: true },
+      { name: "provider", type: "address", indexed: true },
+      { name: "amount", type: "uint256", indexed: false },
+    ],
   },
 ] as const;
