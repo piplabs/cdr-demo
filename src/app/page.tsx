@@ -1,94 +1,103 @@
-import Link from "next/link";
+"use client";
 
-const demos = [
+import { useRouter } from "next/navigation";
+import { AppWindow } from "@/components/desktop/app-window";
+import { AppNavbar } from "@/components/desktop/app-navbar";
+import { CDRDiamondIcon, LockIcon, ShopIcon } from "@/components/desktop/dock-icons";
+
+const appCards = [
   {
-    href: "/secret",
-    emoji: "🔒",
-    title: "Secret Share",
-    description: "Share secrets with zero-trust links",
+    id: "storage",
+    route: "/storage",
+    title: "Private Storage",
+    tagline: "On-chain encrypted data vaults with programmable access control",
+    pills: ["Threshold Encryption", "Multi-sig Access", "Time-windowed", "Data Escrows"],
+    description: "Store private data on-chain without deploying smart contracts — or use contracts for advanced access control like multi-sig reads, time-windowed access, and dead-man switches.",
+    icon: <LockIcon size={24} className="text-glass-indigo" />,
+    iconBg: "bg-gradient-to-br from-[rgba(129,140,248,0.18)] to-[rgba(129,140,248,0.05)] border-[0.5px] border-[rgba(129,140,248,0.15)]",
+    accent: "text-glass-indigo",
+    glowColor: "rgba(129,140,248,0.07)",
   },
   {
-    href: "/marketplace",
-    emoji: "🏪",
-    title: "Data Market",
-    description: "Buy and sell encrypted data, no middleman",
-  },
-  {
-    href: "/agents",
-    emoji: "🤖",
-    title: "Agent Exchange",
-    description: "AI agents trade data autonomously",
-  },
-  {
-    href: "/ai",
-    emoji: "🧠",
-    title: "Confidential AI",
-    description: "Run models on your private data",
-  },
-  {
-    href: "/bounties",
-    emoji: "🎯",
-    title: "Bounty Board",
-    description: "Post data bounties with trustless evaluation",
+    id: "marketplace",
+    route: "/marketplace",
+    title: "Data Marketplace",
+    tagline: "Atomic exchange of private data with on-chain payment guarantees",
+    pills: ["Atomic Swaps", "Subscriptions", "NFT-gated", "IP Licensing"],
+    description: "Providers upload encrypted data and set access terms. Buyers pay and automatically gain decryption. Supports subscriptions, NFT-gated access, and Story Protocol IP licensing.",
+    icon: <ShopIcon size={24} className="text-glass-emerald" />,
+    iconBg: "bg-gradient-to-br from-[rgba(52,211,153,0.18)] to-[rgba(52,211,153,0.05)] border-[0.5px] border-[rgba(52,211,153,0.15)]",
+    accent: "text-glass-emerald",
+    glowColor: "rgba(52,211,153,0.07)",
   },
 ];
 
 export default function HomePage() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-16">
-      {/* Hero */}
-      <div className="relative text-center">
-        {/* Glow */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(99,102,241,0.12)_0%,transparent_70%)]" />
+  const router = useRouter();
 
-        <p className="relative text-[11px] font-medium uppercase tracking-[4px] text-indigo-400/70">
-          CDR — Privacy Infra for AI
-        </p>
-        <h1 className="relative mt-5 text-4xl font-bold leading-[1.2] tracking-tight sm:text-5xl">
-          Your data.
-          <br />
-          Your rules.
-          <br />
-          <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            No single point of trust.
-          </span>
-        </h1>
-        <p className="relative mx-auto mt-5 max-w-md text-sm leading-relaxed text-white/40">
-          Threshold encryption powered by a decentralized key network. No server
-          ever sees your data.
-        </p>
-        <div className="relative mt-8 flex items-center justify-center gap-3">
-          <Link
-            href="/secret"
-            className="rounded-lg bg-indigo-500/15 px-5 py-2.5 text-sm font-semibold text-indigo-300 ring-1 ring-indigo-500/30 transition-colors hover:bg-indigo-500/25"
-          >
-            Try Secret Share →
-          </Link>
-          <Link
-            href="/vault"
-            className="rounded-lg px-5 py-2.5 text-sm font-medium text-white/60 ring-1 ring-white/15 transition-colors hover:text-white/80"
-          >
-            Read the Docs
-          </Link>
+  return (
+    <AppWindow>
+      <AppNavbar
+        icon={<CDRDiamondIcon size={14} className="text-glass-indigo/80" />}
+        iconBg="bg-white/[0.06] border-[0.5px] border-white/[0.08]"
+        title="CDR Home"
+      />
+      <div className="mx-auto max-w-[840px] px-14 pb-20 pt-[52px]">
+        {/* Hero */}
+        <div className="mb-[52px] text-center">
+          <p className="mb-[18px] text-[11px] font-semibold uppercase tracking-[4px] text-glass-indigo/45">
+            Confidential Data Routing
+          </p>
+          <h1 className="mb-4 text-[44px] font-extrabold leading-[1.15] tracking-[-1.5px]">
+            Your data. Your rules.
+            <br />
+            <span className="bg-gradient-to-br from-glass-indigo via-glass-violet to-[#c4b5fd] bg-clip-text text-transparent">
+              No single point of trust.
+            </span>
+          </h1>
+          <p className="mx-auto max-w-[400px] text-sm leading-relaxed text-white/[0.28]">
+            Threshold encryption powered by a decentralized key network.
+            Explore applications built on CDR.
+          </p>
+        </div>
+
+        {/* App cards */}
+        <div className="flex flex-col gap-4">
+          {appCards.map((card) => (
+            <div
+              key={card.id}
+              onClick={() => router.push(card.route)}
+              className="group relative flex cursor-pointer gap-6 overflow-hidden rounded-[20px] border-[0.5px] border-white/[0.05] bg-white/[0.022] p-7 shadow-[inset_0_0.5px_0_rgba(255,255,255,0.03)] backdrop-blur-[20px] transition-all duration-[350ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/[0.04] hover:shadow-[inset_0_0.5px_0_rgba(255,255,255,0.06),0_12px_48px_rgba(0,0,0,0.25)]"
+            >
+              {/* Refraction glow */}
+              <div
+                className="pointer-events-none absolute -right-1/4 -top-[40%] h-[280px] w-[280px] rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                style={{ background: `radial-gradient(circle, ${card.glowColor}, transparent 65%)` }}
+              />
+              {/* Icon */}
+              <div className={`flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-[14px] shadow-[inset_0_0.5px_0_rgba(255,255,255,0.08)] ${card.iconBg}`}>
+                {card.icon}
+              </div>
+              {/* Body */}
+              <div className="relative z-[1] flex-1">
+                <h3 className="mb-[5px] text-[17px] font-bold tracking-[-0.2px]">{card.title}</h3>
+                <p className="mb-3 text-xs text-white/40">{card.tagline}</p>
+                <div className="mb-3 flex flex-wrap gap-[5px]">
+                  {card.pills.map((pill) => (
+                    <span key={pill} className="rounded-full border-[0.5px] border-white/[0.06] bg-white/[0.03] px-[9px] py-[3px] text-[9px] font-semibold uppercase tracking-[0.5px] text-white/30">
+                      {pill}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs leading-relaxed text-white/[0.22]">{card.description}</p>
+                <div className={`mt-3.5 inline-flex items-center gap-[5px] text-xs font-semibold transition-[gap] duration-[250ms] group-hover:gap-[9px] ${card.accent}`}>
+                  Open App →
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      {/* Demo cards */}
-      <div className="grid w-full gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {demos.map((d) => (
-          <Link
-            key={d.href}
-            href={d.href}
-            className="group rounded-xl border border-white/8 bg-white/[0.03] p-5 transition-all hover:border-white/15 hover:bg-white/[0.05]"
-          >
-            <span className="text-2xl">{d.emoji}</span>
-            <h2 className="mt-3 text-sm font-semibold">{d.title}</h2>
-            <p className="mt-1.5 text-xs leading-relaxed text-white/35">
-              {d.description}
-            </p>
-          </Link>
-        ))}
-      </div>
-    </div>
+    </AppWindow>
   );
 }
