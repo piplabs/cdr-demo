@@ -193,7 +193,7 @@ function VaultPageInner() {
         {!loadingVaults && allVaults.length > 0 && (
           <div className="mt-4 max-h-96 overflow-auto">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-[#0a0a0a]">
+              <thead className="sticky top-0 bg-[rgba(8,8,16,0.95)]">
                 <tr className="border-b border-white/10 text-xs text-white/40">
                   <th className="pb-2 pr-4 font-medium">UUID</th>
                   <th className="pb-2 pr-4 font-medium">State</th>
@@ -266,12 +266,12 @@ function VaultPageInner() {
             placeholder="Vault UUID"
             value={uuid}
             onChange={(e) => setUuid(e.target.value)}
-            className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20 focus:bg-white/[0.07]"
+            className="flex-1 rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 shadow-[inset_0_0.5px_0_rgba(255,255,255,0.02)] outline-none transition-colors focus:border-white/[0.1]"
           />
           <button
             onClick={() => handleLookup()}
             disabled={loading || !uuid.trim()}
-            className="rounded-lg bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg bg-[rgba(167,139,246,0.08)] border-[0.5px] border-[rgba(167,139,246,0.18)] px-5 py-2.5 text-sm font-medium text-glass-violet shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(167,139,246,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? "Loading..." : "Lookup"}
           </button>
@@ -377,12 +377,12 @@ function VaultPageInner() {
                   This vault has no read condition. Anyone can decrypt it from
                   the{" "}
                   <a
-                    href="/decrypt"
-                    className="text-brand-500 underline underline-offset-2 hover:text-brand-50"
+                    href="/storage"
+                    className="text-glass-indigo underline underline-offset-2 hover:text-white/70"
                   >
-                    Decrypt
+                    Private Storage
                   </a>{" "}
-                  page.
+                  app.
                 </p>
               </div>
             )}

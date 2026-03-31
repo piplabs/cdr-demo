@@ -461,7 +461,7 @@ export default function MarketplacePage() {
               {uploadedListings.map((listing) => (
                 <div
                   key={listing.id}
-                  className="rounded-xl border border-white/8 bg-white/[0.03] p-5 transition-colors hover:bg-white/[0.05]"
+                  className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 transition-colors hover:bg-white/[0.05]"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
@@ -513,7 +513,7 @@ export default function MarketplacePage() {
 
               {/* Purchase progress */}
               {purchasePhase !== "idle" && (
-                <div className="rounded-xl border border-white/8 bg-white/[0.03] p-6">
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6">
                   <ProgressBar
                     percent={purchaseProgress}
                     label={purchaseProgressLabel}
@@ -566,7 +566,7 @@ export default function MarketplacePage() {
 
           {/* === SELL TAB === */}
           {tab === "sell" && (
-            <div className="rounded-xl border border-white/8 bg-white/[0.03] p-6">
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6">
               {sellPhase === "idle" && (
                 <div className="flex flex-col gap-4">
                   <div>
@@ -749,7 +749,7 @@ export default function MarketplacePage() {
                 purchasedListings.map((listing) => (
                   <div
                     key={listing.id}
-                    className="rounded-xl border border-white/8 bg-white/[0.03] p-5"
+                    className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5"
                   >
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">

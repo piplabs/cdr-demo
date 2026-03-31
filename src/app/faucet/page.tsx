@@ -109,7 +109,7 @@ export default function FaucetPage() {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="0x..."
-          className="mt-2 w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 font-mono text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/25"
+          className="mt-2 w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 font-mono text-sm text-white placeholder-white/30 shadow-[inset_0_0.5px_0_rgba(255,255,255,0.02)] outline-none transition-colors focus:border-white/[0.1]"
         />
 
         {connected && balance !== null && (
@@ -122,7 +122,7 @@ export default function FaucetPage() {
         <button
           onClick={requestTokens}
           disabled={disabled}
-          className="mt-4 w-full rounded-lg bg-white/10 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-4 w-full rounded-lg bg-[rgba(56,189,248,0.08)] border-[0.5px] border-[rgba(56,189,248,0.18)] py-3 text-sm font-semibold text-glass-sky shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(56,189,248,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading
             ? "Sending..."

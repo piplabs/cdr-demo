@@ -373,9 +373,9 @@ function SecretShareInner() {
       />
       <div className="mx-auto max-w-lg px-14 pb-20 pt-9">
         {/* Header */}
-        <h1 className="text-2xl font-bold tracking-tight">Secret Share</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Private Storage</h1>
         <p className="mt-2 text-sm text-white/50">
-          Encrypt a secret and share it via a link. Only you can reveal it.
+          Encrypt data and store it on-chain. Only authorized addresses can decrypt.
         </p>
 
         {/* Wallet / WASM warnings */}
@@ -453,7 +453,7 @@ function SecretShareInner() {
                   onClick={handleCreate}
                   className="rounded-lg bg-[rgba(129,140,248,0.08)] border-[0.5px] border-[rgba(129,140,248,0.18)] text-glass-indigo shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[rgba(129,140,248,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Create Secret Link
+                  Encrypt & Store →
                 </button>
               </>
             )}

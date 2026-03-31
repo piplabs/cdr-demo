@@ -38,16 +38,14 @@ function DockSeparator() {
   return <div className="mx-[2px] h-7 w-px flex-shrink-0 bg-white/[0.07]" />;
 }
 
-function DockItem({ app }: { app: DockApp }) {
-  const pathname = usePathname();
-  const router = useRouter();
+function DockItem({ app, pathname, onNavigate }: { app: DockApp; pathname: string; onNavigate: (route: string) => void }) {
   const isActive = pathname === app.route || (app.route !== "/" && pathname.startsWith(app.route));
   const isHome = app.id === "home" && pathname === "/";
 
   return (
     <div
       className="group relative flex cursor-pointer flex-col items-center"
-      onClick={() => app.enabled && router.push(app.route)}
+      onClick={() => app.enabled && onNavigate(app.route)}
     >
       <div
         className={`flex h-10 w-10 items-center justify-center rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-transform duration-[250ms] [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-2 group-hover:scale-[1.15] ${
@@ -68,15 +66,19 @@ function DockItem({ app }: { app: DockApp }) {
 }
 
 export function Dock() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const navigate = (route: string) => router.push(route);
+
   return (
     <div className="glass-thick fixed bottom-2 left-1/2 z-[200] flex -translate-x-1/2 items-center gap-[3px] rounded-2xl px-[7px] py-1">
-      {apps.map((app) => <DockItem key={app.id} app={app} />)}
+      {apps.map((app) => <DockItem key={app.id} app={app} pathname={pathname} onNavigate={navigate} />)}
       <DockSeparator />
-      {mainApps.map((app) => <DockItem key={app.id} app={app} />)}
+      {mainApps.map((app) => <DockItem key={app.id} app={app} pathname={pathname} onNavigate={navigate} />)}
       <DockSeparator />
-      {utilApps.map((app) => <DockItem key={app.id} app={app} />)}
+      {utilApps.map((app) => <DockItem key={app.id} app={app} pathname={pathname} onNavigate={navigate} />)}
       <DockSeparator />
-      {comingSoon.map((app) => <DockItem key={app.id} app={app} />)}
+      {comingSoon.map((app) => <DockItem key={app.id} app={app} pathname={pathname} onNavigate={navigate} />)}
     </div>
   );
 }
