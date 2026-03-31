@@ -1,0 +1,82 @@
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
+import {
+  CDRDiamondIcon, LockIcon, ShopIcon,
+  DropletIcon, BoxIcon, AgentIcon, BrainIcon,
+} from "./dock-icons";
+
+interface DockApp {
+  id: string;
+  route: string;
+  label: string;
+  icon: React.ReactNode;
+  gradient: string;
+  enabled: boolean;
+}
+
+const apps: DockApp[] = [
+  { id: "home", route: "/", label: "CDR Home", icon: <CDRDiamondIcon size={18} className="text-glass-indigo" />, gradient: "bg-gradient-to-br from-[#2a2a3e] to-[#1a1a2e] border-[0.5px] border-white/[0.12]", enabled: true },
+];
+
+const mainApps: DockApp[] = [
+  { id: "storage", route: "/storage", label: "Private Storage", icon: <LockIcon size={18} className="text-white" />, gradient: "bg-gradient-to-br from-[#5555e8] to-[#818cf8]", enabled: true },
+  { id: "marketplace", route: "/marketplace", label: "Data Marketplace", icon: <ShopIcon size={18} className="text-white" />, gradient: "bg-gradient-to-br from-[#059669] to-[#34d399]", enabled: true },
+];
+
+const utilApps: DockApp[] = [
+  { id: "faucet", route: "/faucet", label: "Faucet", icon: <DropletIcon size={18} className="text-white" />, gradient: "bg-gradient-to-br from-[#0077b6] to-[#38bdf8]", enabled: true },
+  { id: "vault", route: "/vault", label: "Vault Browser", icon: <BoxIcon size={18} className="text-white" />, gradient: "bg-gradient-to-br from-[#6d28d9] to-[#a78bfa]", enabled: true },
+];
+
+const comingSoon: DockApp[] = [
+  { id: "agents", route: "/agents", label: "Agents — Soon", icon: <AgentIcon size={18} className="text-white/40" />, gradient: "", enabled: false },
+  { id: "ai", route: "/ai", label: "Confidential AI — Soon", icon: <BrainIcon size={18} className="text-white/40" />, gradient: "", enabled: false },
+];
+
+function DockSeparator() {
+  return <div className="mx-[2px] h-7 w-px flex-shrink-0 bg-white/[0.07]" />;
+}
+
+function DockItem({ app }: { app: DockApp }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const isActive = pathname === app.route || (app.route !== "/" && pathname.startsWith(app.route));
+  const isHome = app.id === "home" && pathname === "/";
+
+  return (
+    <div
+      className="group relative flex cursor-pointer flex-col items-center"
+      onClick={() => app.enabled && router.push(app.route)}
+    >
+      <div
+        className={`flex h-10 w-10 items-center justify-center rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-transform duration-[250ms] [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-2 group-hover:scale-[1.15] ${
+          app.enabled ? app.gradient : "bg-white/[0.04] border-[0.5px] border-white/[0.06] opacity-40 shadow-none"
+        } relative overflow-hidden`}
+      >
+        {app.enabled && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[10px] bg-gradient-to-b from-white/[0.15] to-transparent" />
+        )}
+        <span className="relative z-10">{app.icon}</span>
+      </div>
+      <div className={`mt-[3px] h-1 w-1 rounded-full bg-white/60 transition-opacity ${isActive || isHome ? "opacity-100" : "opacity-0"}`} />
+      <div className="pointer-events-none absolute bottom-[calc(100%+12px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[7px] border-[0.5px] border-white/10 bg-black/75 px-3 py-[5px] text-[11px] font-medium text-white/90 opacity-0 backdrop-blur-xl transition-opacity group-hover:opacity-100">
+        {app.label}
+      </div>
+    </div>
+  );
+}
+
+export function Dock() {
+  return (
+    <div className="glass-thick fixed bottom-2 left-1/2 z-[200] flex -translate-x-1/2 items-center gap-[3px] rounded-2xl px-[7px] py-1">
+      {apps.map((app) => <DockItem key={app.id} app={app} />)}
+      <DockSeparator />
+      {mainApps.map((app) => <DockItem key={app.id} app={app} />)}
+      <DockSeparator />
+      {utilApps.map((app) => <DockItem key={app.id} app={app} />)}
+      <DockSeparator />
+      {comingSoon.map((app) => <DockItem key={app.id} app={app} />)}
+    </div>
+  );
+}
