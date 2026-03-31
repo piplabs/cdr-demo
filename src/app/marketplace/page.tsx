@@ -18,6 +18,9 @@ import { cdrDevnet } from "@/config/chain";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { decryptPartial as eciesDecrypt, tdh2Combine, decryptFile } from "@piplabs/cdr-crypto";
 import { CONTRACTS, marketplaceAbi } from "@/config/contracts";
+import { AppWindow } from "@/components/desktop/app-window";
+import { AppNavbar } from "@/components/desktop/app-navbar";
+import { ShopIcon } from "@/components/desktop/dock-icons";
 
 function truncateAddress(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -396,10 +399,20 @@ export default function MarketplacePage() {
   const sellFormValid = connected && wasmReady && sellTitle.trim() && sellFee.trim() && (sellInputMode === "text" ? sellSecret.trim() : !!sellFile);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8">
-      <div className="w-full max-w-2xl">
+    <AppWindow>
+      <AppNavbar
+        icon={<ShopIcon size={14} className="text-glass-emerald" />}
+        iconBg="bg-gradient-to-br from-[rgba(52,211,153,0.2)] to-[rgba(52,211,153,0.06)] border-[0.5px] border-[rgba(52,211,153,0.15)]"
+        title="Data Marketplace"
+        tabs={[
+          { label: "Browse", active: tab === "browse", onClick: () => setTab("browse") },
+          { label: "Sell", active: tab === "sell", onClick: () => setTab("sell") },
+          { label: "My Purchases", active: tab === "purchases", onClick: () => setTab("purchases") },
+        ]}
+      />
+      <div className="mx-auto max-w-[600px] px-14 pb-20 pt-9">
         <h1 className="text-2xl font-bold tracking-tight">
-          <span className="mr-2">&#127978;</span>Data Marketplace
+          Data Marketplace
         </h1>
         <p className="mt-2 text-sm text-white/50">
           Buy and sell encrypted data. No middleman, no platform cuts.
@@ -420,21 +433,6 @@ export default function MarketplacePage() {
             Crypto module failed to load: {wasmError}
           </div>
         )}
-
-        {/* Tab navigation */}
-        <div className="mt-6 flex gap-1 rounded-lg bg-white/5 p-1">
-          {(["browse", "sell", "purchases"] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                tab === t ? "bg-white/10 text-white" : "text-white/50 hover:text-white/70"
-              }`}
-            >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </div>
 
         <div className="mt-6">
           {/* === BROWSE TAB === */}
@@ -503,7 +501,7 @@ export default function MarketplacePage() {
                         <button
                           onClick={() => handlePurchaseAndDecrypt(listing)}
                           disabled={!connected || !wasmReady || purchasePhase === "processing"}
-                          className="rounded-lg bg-demo-market/20 px-3 py-1.5 text-xs font-medium text-emerald-300 ring-1 ring-demo-market/30 transition-colors hover:bg-demo-market/30 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="rounded-lg bg-[rgba(52,211,153,0.08)] border-[0.5px] border-[rgba(52,211,153,0.18)] text-glass-emerald shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[rgba(52,211,153,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           Buy &rarr;
                         </button>
@@ -580,7 +578,7 @@ export default function MarketplacePage() {
                       value={sellTitle}
                       onChange={(e) => setSellTitle(e.target.value)}
                       placeholder="e.g. Q4 2025 DeFi Analytics Report"
-                      className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
                     />
                   </div>
                   <div>
@@ -592,7 +590,7 @@ export default function MarketplacePage() {
                       onChange={(e) => setSellDescription(e.target.value)}
                       placeholder="What does the buyer get? Include details about format, coverage, etc."
                       rows={3}
-                      className="w-full resize-none rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="w-full resize-none rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
                     />
                   </div>
                   <div>
@@ -602,7 +600,7 @@ export default function MarketplacePage() {
                     <select
                       value={sellCategory}
                       onChange={(e) => setSellCategory(e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
                     >
                       <option value="" className="bg-neutral-900">None</option>
                       {CATEGORIES.map((c) => (
@@ -619,7 +617,7 @@ export default function MarketplacePage() {
                       value={sellFee}
                       onChange={(e) => setSellFee(e.target.value)}
                       placeholder="0.01"
-                      className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
                     />
                   </div>
                   <div>
@@ -650,14 +648,14 @@ export default function MarketplacePage() {
                         onChange={(e) => setSellSecret(e.target.value)}
                         placeholder="Paste the data buyers will receive after purchase..."
                         rows={4}
-                        className="w-full resize-none rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                        className="w-full resize-none rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
                       />
                     )}
                   </div>
                   <button
                     onClick={handleSell}
                     disabled={!sellFormValid}
-                    className="rounded-lg bg-demo-market/20 px-4 py-2.5 text-sm font-medium text-emerald-300 ring-1 ring-demo-market/30 transition-colors hover:bg-demo-market/30 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-lg bg-[rgba(52,211,153,0.08)] border-[0.5px] border-[rgba(52,211,153,0.18)] text-glass-emerald shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[rgba(52,211,153,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     List for Sale
                   </button>
@@ -857,6 +855,6 @@ const plaintext = tdh2Combine(ciphertext, shares, globalPubKey);`}</pre>
           ]}
         />
       </div>
-    </div>
+    </AppWindow>
   );
 }
