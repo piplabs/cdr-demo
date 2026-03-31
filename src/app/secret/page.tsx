@@ -13,6 +13,9 @@ import { useWasm } from "@/providers/wasm-provider";
 import { ProgressBar } from "@/components/progress-bar";
 import { HowItWorks } from "@/components/how-it-works";
 import { collectPartialsWithProgress } from "@/lib/collect-partials";
+import { AppWindow } from "@/components/desktop/app-window";
+import { AppNavbar } from "@/components/desktop/app-navbar";
+import { LockIcon } from "@/components/desktop/dock-icons";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -358,8 +361,17 @@ function SecretShareInner() {
   const isWorking = phase === "working";
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-12">
-      <div className="w-full max-w-lg rounded-xl border border-white/10 bg-white/[0.02] p-8">
+    <>
+      <AppNavbar
+        icon={<LockIcon size={14} className="text-glass-indigo" />}
+        iconBg="bg-gradient-to-br from-[rgba(129,140,248,0.2)] to-[rgba(129,140,248,0.06)] border-[0.5px] border-[rgba(129,140,248,0.15)]"
+        title="Private Storage"
+        tabs={[
+          { label: "Create", active: tab === "create", onClick: () => { if (!isWorking) { setTab("create"); reset(); } } },
+          { label: "Reveal", active: tab === "reveal", onClick: () => { if (!isWorking) { setTab("reveal"); reset(); } } },
+        ]}
+      />
+      <div className="mx-auto max-w-lg px-14 pb-20 pt-9">
         {/* Header */}
         <h1 className="text-2xl font-bold tracking-tight">Secret Share</h1>
         <p className="mt-2 text-sm text-white/50">
@@ -382,28 +394,6 @@ function SecretShareInner() {
             WASM failed to load: {wasmError}
           </div>
         )}
-
-        {/* Tabs */}
-        <div className="mt-6 flex gap-1 rounded-lg bg-white/5 p-1">
-          {(["create", "reveal"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                if (!isWorking) {
-                  setTab(t);
-                  reset();
-                }
-              }}
-              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                tab === t
-                  ? "bg-white/10 text-white"
-                  : "text-white/40 hover:text-white/60"
-              }`}
-            >
-              {t === "create" ? "Create" : "Reveal"}
-            </button>
-          ))}
-        </div>
 
         {/* ============================================================ */}
         {/*  CREATE TAB                                                   */}
@@ -454,14 +444,14 @@ function SecretShareInner() {
                       onChange={(e) => setSecretText(e.target.value)}
                       placeholder="Type something secret..."
                       rows={4}
-                      className="w-full resize-none rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20"
+                      className="w-full resize-none rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20"
                     />
                   )}
                 </div>
                 <button
                   disabled={!canCreate}
                   onClick={handleCreate}
-                  className="rounded-lg bg-demo-secret/15 px-4 py-2.5 text-sm font-medium text-indigo-300 ring-1 ring-demo-secret/30 transition-colors hover:bg-demo-secret/25 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg bg-[rgba(129,140,248,0.08)] border-[0.5px] border-[rgba(129,140,248,0.18)] text-glass-indigo shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[rgba(129,140,248,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Create Secret Link
                 </button>
@@ -545,13 +535,13 @@ function SecretShareInner() {
                     value={revealInput}
                     onChange={(e) => setRevealInput(e.target.value)}
                     placeholder="Paste a link or enter a number..."
-                    className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20"
+                    className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20"
                   />
                 </div>
                 <button
                   disabled={!canReveal}
                   onClick={handleReveal}
-                  className="rounded-lg bg-demo-secret/15 px-4 py-2.5 text-sm font-medium text-indigo-300 ring-1 ring-demo-secret/30 transition-colors hover:bg-demo-secret/25 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg bg-[rgba(129,140,248,0.08)] border-[0.5px] border-[rgba(129,140,248,0.18)] text-glass-indigo shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[rgba(129,140,248,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Reveal
                 </button>
@@ -775,7 +765,7 @@ const secret = await tdh2Combine({
           ]}
         />
       </div>
-    </div>
+    </>
   );
 }
 
@@ -785,14 +775,16 @@ const secret = await tdh2Combine({
 
 export default function SecretSharePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-white/30">Loading...</p>
-        </div>
-      }
-    >
-      <SecretShareInner />
-    </Suspense>
+    <AppWindow>
+      <Suspense
+        fallback={
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-sm text-white/30">Loading...</p>
+          </div>
+        }
+      >
+        <SecretShareInner />
+      </Suspense>
+    </AppWindow>
   );
 }
