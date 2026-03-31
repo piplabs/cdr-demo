@@ -4,6 +4,9 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCDRClient } from "@/hooks/use-cdr-client";
 import { cdrAbi, contractAddresses } from "@piplabs/cdr-contracts";
+import { AppWindow } from "@/components/desktop/app-window";
+import { AppNavbar } from "@/components/desktop/app-navbar";
+import { BoxIcon } from "@/components/desktop/dock-icons";
 
 interface VaultData {
   updatable: boolean;
@@ -30,9 +33,16 @@ function truncateAddress(addr: string) {
 
 export default function VaultPage() {
   return (
-    <Suspense>
-      <VaultPageInner />
-    </Suspense>
+    <AppWindow>
+      <AppNavbar
+        icon={<BoxIcon size={14} className="text-glass-violet" />}
+        iconBg="bg-gradient-to-br from-[rgba(167,139,246,0.2)] to-[rgba(167,139,246,0.06)] border-[0.5px] border-[rgba(167,139,246,0.15)]"
+        title="Vault Browser"
+      />
+      <Suspense>
+        <VaultPageInner />
+      </Suspense>
+    </AppWindow>
   );
 }
 
@@ -153,9 +163,9 @@ function VaultPageInner() {
   const hasWriteCondition = vault && vault.writeConditionAddr !== ZERO_ADDR;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-start gap-8 py-8">
+    <div className="px-14 pb-20 pt-9">
       {/* All Vaults List */}
-      <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-white/[0.02] p-8">
+      <div className="mx-auto max-w-2xl rounded-xl border border-white/10 bg-white/[0.02] p-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">All Vaults</h1>
@@ -243,7 +253,7 @@ function VaultPageInner() {
       </div>
 
       {/* Vault Details */}
-      <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-white/[0.02] p-8">
+      <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-white/10 bg-white/[0.02] p-8">
         <h2 className="text-lg font-bold tracking-tight">Vault Details</h2>
         <p className="mt-1 text-sm text-white/50">
           Click a vault above or enter a UUID to inspect.

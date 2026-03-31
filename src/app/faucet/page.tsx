@@ -5,6 +5,9 @@ import { isAddress } from "viem";
 import { useCDRClient } from "@/hooks/use-cdr-client";
 import { useBalance } from "@/hooks/use-balance";
 import { TxLink } from "@/components/tx-link";
+import { AppWindow } from "@/components/desktop/app-window";
+import { AppNavbar } from "@/components/desktop/app-navbar";
+import { DropletIcon } from "@/components/desktop/dock-icons";
 
 export default function FaucetPage() {
   const { address: walletAddress, connected } = useCDRClient();
@@ -79,7 +82,14 @@ export default function FaucetPage() {
   const disabled = loading || !isValid || countdown > 0;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8">
+    <AppWindow>
+      <AppNavbar
+        icon={<DropletIcon size={14} className="text-glass-sky" />}
+        iconBg="bg-gradient-to-br from-[rgba(56,189,248,0.2)] to-[rgba(56,189,248,0.06)] border-[0.5px] border-[rgba(56,189,248,0.15)]"
+        title="Faucet"
+      />
+      <div className="px-14 pb-20 pt-9">
+      <div className="mx-auto max-w-lg">
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight">Faucet</h1>
         <p className="mt-2 text-sm text-white/50">
@@ -90,7 +100,7 @@ export default function FaucetPage() {
         </p>
       </div>
 
-      <div className="w-full max-w-lg rounded-xl border border-white/10 bg-white/[0.02] p-6">
+      <div className="mt-8 w-full">
         <label className="block text-sm font-medium text-white/70">
           Recipient address
         </label>
@@ -138,6 +148,8 @@ export default function FaucetPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+      </div>
+    </AppWindow>
   );
 }
