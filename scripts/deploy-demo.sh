@@ -11,7 +11,7 @@ set -euo pipefail
 # Usage:
 #   PRIVATE_KEY=0x... ./scripts/deploy-demo.sh
 
-RPC_URL="http://52.243.51.231:8545"
+RPC_URL="${RPC_URL:-https://aeneid.storyrpc.io}"
 CONTRACTS_DIR="$(cd "$(dirname "$0")/../contracts" && pwd)"
 
 if [ -z "${PRIVATE_KEY:-}" ]; then
