@@ -24,7 +24,12 @@ export function useCDRClient() {
   const client = useMemo(() => {
     // Cast needed: cdr-sdk bundles its own viem types which are structurally
     // identical but nominally distinct from the app's copy of viem.
-    return new CDRClient({ network: "testnet", publicClient: publicClient as any });
+    return new CDRClient({
+      network: "testnet",
+      publicClient: publicClient as any,
+      dkgSource: "cosmos-abci",
+      cometRpcUrl: "/api/comet",
+    });
   }, [publicClient]);
 
   const getWriteClient = async () => {
@@ -39,6 +44,8 @@ export function useCDRClient() {
       network: "testnet",
       publicClient: publicClient as any,
       walletClient: walletClient as any,
+      dkgSource: "cosmos-abci",
+      cometRpcUrl: "/api/comet",
     });
   };
 

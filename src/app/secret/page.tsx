@@ -307,7 +307,7 @@ function SecretShareInner() {
             recipientPrivKey: privKey,
           });
           return {
-            pid: p.pid,
+            name: String(p.pid),
             pubShare: toBytes(p.pubShare),
             partial: decrypted,
           };

@@ -339,7 +339,7 @@ export default function MarketplacePage() {
             ephemeralPubKey: toBytes(p.ephemeralPubKey),
             recipientPrivKey: privKey,
           });
-          return { pid: p.pid, pubShare: toBytes(p.pubShare), partial: decrypted };
+          return { name: String(p.pid), pubShare: toBytes(p.pubShare), partial: decrypted };
         }),
       );
 
