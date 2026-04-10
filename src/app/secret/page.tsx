@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { createWalletClient, custom, encodeFunctionData, fromHex, toBytes, toHex } from "viem";
+import { createWalletClient, custom, fromHex, toBytes, toHex } from "viem";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { cdrAbi, contractAddresses } from "@piplabs/cdr-contracts";
 import { CONTRACTS, whitelistConditionAbi } from "@/config/contracts";
@@ -72,12 +72,7 @@ function SecretShareInner() {
     }
   }, [prefilledId]);
 
-  /* ---- Derived: classify recipients for validation ---- */
-  const classified: ClassifiedRecipient[] = recipients.map((r) =>
-    r.trim().length === 0
-      ? { kind: "invalid", value: r, reason: "empty" }
-      : classifyRecipient(r),
-  );
+  const classified: ClassifiedRecipient[] = recipients.map(classifyRecipient);
   const hasInvalidRecipient = classified.some(
     (c, i) => recipients[i].trim().length > 0 && c.kind === "invalid",
   );
@@ -148,11 +143,15 @@ function SecretShareInner() {
     setErrorMsg("");
 
     try {
-      // ---- Classify recipients ----
-      const nonEmpty = recipients
-        .map((r) => r.trim())
-        .filter((r) => r.length > 0);
-      const classifiedList = nonEmpty.map(classifyRecipient);
+      if (!CONTRACTS.WHITELIST_CONDITION) {
+        throw new Error(
+          "WhitelistCondition address not configured (NEXT_PUBLIC_WHITELIST_CONDITION)",
+        );
+      }
+
+      const classifiedList = recipients
+        .filter((r) => r.trim().length > 0)
+        .map(classifyRecipient);
       const invalid = classifiedList.find((c) => c.kind === "invalid");
       if (invalid) {
         throw new Error(`Invalid recipient: ${invalid.value}`);
@@ -167,7 +166,6 @@ function SecretShareInner() {
         )
         .map((c) => c.value);
 
-      // ---- Resolve emails via Privy ----
       let resolvedEmailAddrs: `0x${string}`[] = [];
       if (emails.length > 0) {
         const res = await fetch("/api/privy/resolve", {
@@ -188,7 +186,6 @@ function SecretShareInner() {
       const whitelist = dedupeAddresses([...resolvedEmailAddrs, ...rawAddrs]);
       setProgress(15);
 
-      // ---- File pre-upload (file mode only) ----
       let filePayload: {
         cid: string;
         key: string;
@@ -212,17 +209,8 @@ function SecretShareInner() {
         setProgress(30);
       }
 
-      // ---- Allocate vault gated on WhitelistCondition ----
       setProgressLabel("Creating secure vault...");
       const writeClient = await getWriteClient();
-      if (
-        !CONTRACTS.WHITELIST_CONDITION ||
-        CONTRACTS.WHITELIST_CONDITION === ("" as `0x${string}`)
-      ) {
-        throw new Error(
-          "WhitelistCondition address not configured (NEXT_PUBLIC_WHITELIST_CONDITION)",
-        );
-      }
       const { uuid } = await writeClient.uploader.allocate({
         updatable: false,
         writeConditionAddr: CONTRACTS.WHITELIST_CONDITION,
@@ -232,7 +220,6 @@ function SecretShareInner() {
       });
       setProgress(45);
 
-      // ---- Seed the whitelist ----
       setProgressLabel("Seeding access list...");
       const wallet = wallets[0];
       if (!wallet) throw new Error("No wallet connected");
@@ -242,33 +229,35 @@ function SecretShareInner() {
         transport: custom(provider),
         account: wallet.address as `0x${string}`,
       });
-      const registerData = encodeFunctionData({
-        abi: whitelistConditionAbi,
-        functionName: "registerWithInitial",
-        args: [uuid, whitelist],
-      });
-      const registerHash = await walletClient.sendTransaction({
-        to: CONTRACTS.WHITELIST_CONDITION,
-        data: registerData,
-      });
-      await publicClient.waitForTransactionReceipt({ hash: registerHash });
+      // Run the register tx in parallel with the DKG pubkey fetch — they are
+      // independent and `getGlobalPubKey` usually dominates latency.
+      const [, globalPubKey] = await Promise.all([
+        walletClient
+          .writeContract({
+            address: CONTRACTS.WHITELIST_CONDITION,
+            abi: whitelistConditionAbi,
+            functionName: "registerWithInitial",
+            args: [uuid, whitelist],
+          })
+          .then((hash) =>
+            publicClient.waitForTransactionReceipt({ hash }),
+          ),
+        client.observer.getGlobalPubKey(),
+      ]);
       setProgress(60);
 
-      // ---- Encrypt payload ----
       setProgressLabel("Encrypting your secret...");
-      const payloadBytes =
-        filePayload
-          ? new TextEncoder().encode(
-              JSON.stringify({
-                type: "file",
-                cid: filePayload.cid,
-                key: filePayload.key,
-                fileName: filePayload.fileName,
-                fileSize: filePayload.fileSize,
-              }),
-            )
-          : new TextEncoder().encode(secretText);
-      const globalPubKey = await client.observer.getGlobalPubKey();
+      const payloadBytes = filePayload
+        ? new TextEncoder().encode(
+            JSON.stringify({
+              type: "file",
+              cid: filePayload.cid,
+              key: filePayload.key,
+              fileName: filePayload.fileName,
+              fileSize: filePayload.fileSize,
+            }),
+          )
+        : new TextEncoder().encode(secretText);
       const label = uuidToLabel(uuid);
       const ciphertext = await writeClient.uploader.encryptDataKey({
         dataKey: payloadBytes,
@@ -277,7 +266,6 @@ function SecretShareInner() {
       });
       setProgress(80);
 
-      // ---- Write ciphertext on-chain ----
       setProgressLabel("Storing on-chain...");
       await writeClient.uploader.write({
         uuid,
@@ -437,7 +425,7 @@ function SecretShareInner() {
       setProgressLabel("Failed");
       setPhase("error");
     }
-  }, [client, getWriteClient, publicClient, revealInput]);
+  }, [address, client, getWriteClient, publicClient, revealInput]);
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */

@@ -1,33 +1,26 @@
-/**
- * POST /api/privy/resolve
- *
- * Resolves a list of emails to Ethereum wallet addresses via Privy's
- * pregeneration API. When an email has never been seen before, Privy
- * creates a user with a deterministic embedded wallet. When the email
- * already exists, Privy returns the existing user's wallet.
- *
- * The returned addresses are used to seed the WhitelistCondition for a
- * freshly allocated CDR vault so email recipients can decrypt after
- * logging in with that email (same appId + same email → same wallet).
- *
- * Server-only: PRIVY_APP_SECRET must never reach the client.
- */
+// Pregenerates Privy embedded wallets for a batch of emails. Same appId +
+// same email deterministically yields the same wallet across the sender's
+// pre-create and the recipient's later login — that's the identity invariant
+// the whole sharing flow hinges on.
 
 import { NextRequest, NextResponse } from "next/server";
+import { EMAIL_RE } from "@/lib/recipients";
 
 const PRIVY_API = "https://auth.privy.io/api/v1/users";
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAILS = 3;
 
-// Simple in-memory rate limiter — 5 requests / 60s per IP.
 const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 60_000;
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 function rateLimit(ip: string): boolean {
   const now = Date.now();
+  // Reap expired entries so unique-IP traffic can't grow the map unbounded.
+  for (const [key, bucket] of buckets) {
+    if (bucket.resetAt < now) buckets.delete(key);
+  }
   const bucket = buckets.get(ip);
-  if (!bucket || bucket.resetAt < now) {
+  if (!bucket) {
     buckets.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
     return true;
   }

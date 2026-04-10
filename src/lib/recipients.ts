@@ -1,17 +1,12 @@
-/**
- * Pure helpers for classifying and deduplicating recipient inputs for
- * CDR private-storage sharing. A recipient is either an email (which
- * must be resolved via Privy to a wallet address) or a raw 0x address.
- */
+import { isAddress } from "viem";
 
 export type ClassifiedRecipient =
   | { kind: "email"; value: string }
   | { kind: "address"; value: `0x${string}` }
   | { kind: "invalid"; value: string; reason: string };
 
-// RFC 5322-ish: intentionally lenient. Server-side also validates.
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
+// Intentionally lenient. Server-side also validates.
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function classifyRecipient(raw: string): ClassifiedRecipient {
   const trimmed = raw.trim();
@@ -21,8 +16,8 @@ export function classifyRecipient(raw: string): ClassifiedRecipient {
   if (trimmed.length > 254) {
     return { kind: "invalid", value: raw, reason: "too long" };
   }
-  if (ADDRESS_RE.test(trimmed)) {
-    return { kind: "address", value: trimmed as `0x${string}` };
+  if (isAddress(trimmed)) {
+    return { kind: "address", value: trimmed };
   }
   if (EMAIL_RE.test(trimmed)) {
     return { kind: "email", value: trimmed.toLowerCase() };
@@ -34,10 +29,7 @@ export function classifyRecipient(raw: string): ClassifiedRecipient {
   };
 }
 
-/**
- * Dedupe a list of addresses case-insensitively, preserving the first
- * occurrence's original casing.
- */
+// Preserves the first occurrence's original casing.
 export function dedupeAddresses(
   addrs: `0x${string}`[],
 ): `0x${string}`[] {
