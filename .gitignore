@@ -55,3 +55,6 @@ contracts/out/
 docs/ai/
 docs/superpowers/
 .superpowers/
+
+# worktrees
+.worktrees/
