@@ -36,7 +36,7 @@ export default function VaultPage() {
     <AppWindow>
       <AppNavbar
         icon={<BoxIcon size={14} className="text-glass-violet" />}
-        iconBg="bg-gradient-to-br from-[rgba(167,139,246,0.2)] to-[rgba(167,139,246,0.06)] border-[0.5px] border-[rgba(167,139,246,0.15)]"
+        iconBg="liquid-icon-violet"
         title="Vault Browser"
       />
       <Suspense>
@@ -165,7 +165,7 @@ function VaultPageInner() {
   return (
     <div className="px-14 pb-20 pt-9">
       {/* All Vaults List */}
-      <div className="mx-auto max-w-2xl rounded-xl border border-white/10 bg-white/[0.02] p-8">
+      <div className="liquid-panel mx-auto max-w-2xl rounded-[28px] p-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">All Vaults</h1>
@@ -178,7 +178,7 @@ function VaultPageInner() {
           <button
             onClick={fetchAllVaults}
             disabled={loadingVaults}
-            className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/15 disabled:opacity-40"
+            className="liquid-button rounded-full px-3 py-1.5 text-xs font-medium disabled:opacity-40"
           >
             Refresh
           </button>
@@ -240,7 +240,7 @@ function VaultPageInner() {
         )}
 
         {!loadingVaults && allVaults.length === 0 && !vaultsError && (
-          <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-6 text-center text-sm text-white/40">
+          <div className="liquid-panel-soft mt-4 rounded-2xl px-4 py-6 text-center text-sm text-white/40">
             No vaults have been created yet.
           </div>
         )}
@@ -253,7 +253,7 @@ function VaultPageInner() {
       </div>
 
       {/* Vault Details */}
-      <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-white/10 bg-white/[0.02] p-8">
+      <div className="liquid-panel mx-auto mt-8 max-w-2xl rounded-[28px] p-8">
         <h2 className="text-lg font-bold tracking-tight">Vault Details</h2>
         <p className="mt-1 text-sm text-white/50">
           Click a vault above or enter a UUID to inspect.
@@ -266,12 +266,12 @@ function VaultPageInner() {
             placeholder="Vault UUID"
             value={uuid}
             onChange={(e) => setUuid(e.target.value)}
-            className="flex-1 rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 shadow-[inset_0_0.5px_0_rgba(255,255,255,0.02)] outline-none transition-colors focus:border-white/[0.1]"
+            className="liquid-input flex-1 rounded-2xl px-4 py-2.5 text-sm text-white placeholder-white/30"
           />
           <button
             onClick={() => handleLookup()}
             disabled={loading || !uuid.trim()}
-            className="rounded-lg bg-[rgba(167,139,246,0.08)] border-[0.5px] border-[rgba(167,139,246,0.18)] px-5 py-2.5 text-sm font-medium text-glass-violet shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(167,139,246,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
+            className="liquid-button liquid-button-violet rounded-2xl px-5 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? "Loading..." : "Lookup"}
           </button>
@@ -303,7 +303,7 @@ function VaultPageInner() {
             </div>
 
             {/* Properties */}
-            <div className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-4">
+            <div className="liquid-panel-soft flex flex-col gap-3 rounded-2xl p-4">
               <Row
                 label="Encrypted Data"
                 value={
@@ -355,7 +355,7 @@ function VaultPageInner() {
                 <p className="text-xs font-medium uppercase tracking-wider text-white/40">
                   Ciphertext (hex)
                 </p>
-                <div className="max-h-24 overflow-auto rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                <div className="liquid-panel-soft max-h-24 overflow-auto rounded-2xl px-3 py-2">
                   <p className="break-all font-mono text-xs leading-relaxed text-white/40">
                     {vault.encryptedData}
                   </p>
@@ -372,13 +372,13 @@ function VaultPageInner() {
                 </p>
               </div>
             ) : (
-              <div className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
+              <div className="liquid-panel-soft rounded-2xl px-4 py-3">
                 <p className="text-sm text-white/50">
                   This vault has no read condition. Anyone can decrypt it from
                   the{" "}
                   <a
                     href="/storage"
-                    className="text-glass-indigo underline underline-offset-2 hover:text-white/70"
+                    className="liquid-link underline underline-offset-2"
                   >
                     Private Storage
                   </a>{" "}

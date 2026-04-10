@@ -443,7 +443,7 @@ function SecretShareInner() {
     <>
       <AppNavbar
         icon={<LockIcon size={14} className="text-glass-indigo" />}
-        iconBg="bg-gradient-to-br from-[rgba(129,140,248,0.2)] to-[rgba(129,140,248,0.06)] border-[0.5px] border-[rgba(129,140,248,0.15)]"
+        iconBg="liquid-icon-indigo"
         title="Private Storage"
         tabs={[
           { label: "Create", active: tab === "create", onClick: () => { if (!isWorking) { setTab("create"); reset(); } } },
@@ -485,19 +485,19 @@ function SecretShareInner() {
                   <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-white/40">
                     Your Secret
                   </label>
-                  <div className="flex gap-1 rounded-md bg-white/5 p-0.5 mb-3">
+                  <div className="liquid-segmented mb-3 flex gap-1 rounded-full p-1">
                     <button
                       onClick={() => setInputMode("text")}
-                      className={`flex-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-                        inputMode === "text" ? "bg-white/10 text-white" : "text-white/40"
+                      className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${
+                        inputMode === "text" ? "liquid-panel-soft text-white" : "text-white/40"
                       }`}
                     >
                       Text
                     </button>
                     <button
                       onClick={() => setInputMode("file")}
-                      className={`flex-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-                        inputMode === "file" ? "bg-white/10 text-white" : "text-white/40"
+                      className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${
+                        inputMode === "file" ? "liquid-panel-soft text-white" : "text-white/40"
                       }`}
                     >
                       File
@@ -523,7 +523,7 @@ function SecretShareInner() {
                       onChange={(e) => setSecretText(e.target.value)}
                       placeholder="Type something secret..."
                       rows={4}
-                      className="w-full resize-none rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20"
+                      className="liquid-input w-full resize-none rounded-2xl px-4 py-3 text-sm text-white placeholder-white/30"
                     />
                   )}
                 </div>
@@ -573,7 +573,7 @@ function SecretShareInner() {
                 <button
                   disabled={!canCreate}
                   onClick={handleCreate}
-                  className="rounded-lg bg-[rgba(129,140,248,0.08)] border-[0.5px] border-[rgba(129,140,248,0.18)] text-glass-indigo shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[rgba(129,140,248,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="liquid-button liquid-button-indigo rounded-2xl px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Encrypt & Store →
                 </button>
@@ -595,7 +595,7 @@ function SecretShareInner() {
                     </div>
                     <button
                       onClick={reset}
-                      className="rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                      className="liquid-button rounded-2xl px-4 py-2.5 text-sm font-medium"
                     >
                       Try Again
                     </button>
@@ -621,7 +621,7 @@ function SecretShareInner() {
                     </span>
                     <button
                       onClick={() => copyToClipboard(shareLink)}
-                      className="shrink-0 rounded-md bg-white/10 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-white/15"
+                      className="liquid-button shrink-0 rounded-full px-3 py-1 text-xs font-medium"
                     >
                       {copied ? "Copied!" : "Copy"}
                     </button>
@@ -653,13 +653,13 @@ function SecretShareInner() {
                     value={revealInput}
                     onChange={(e) => setRevealInput(e.target.value)}
                     placeholder="Paste a link or enter a number..."
-                    className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20"
+                    className="liquid-input w-full rounded-2xl px-4 py-2.5 text-sm text-white placeholder-white/30"
                   />
                 </div>
                 <button
                   disabled={!canReveal}
                   onClick={handleReveal}
-                  className="rounded-lg bg-[rgba(129,140,248,0.08)] border-[0.5px] border-[rgba(129,140,248,0.18)] text-glass-indigo shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[rgba(129,140,248,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="liquid-button liquid-button-indigo rounded-2xl px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Reveal
                 </button>
@@ -681,7 +681,7 @@ function SecretShareInner() {
                     </div>
                     <button
                       onClick={reset}
-                      className="rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                      className="liquid-button rounded-2xl px-4 py-2.5 text-sm font-medium"
                     >
                       Try Again
                     </button>
