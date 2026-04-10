@@ -402,7 +402,7 @@ export default function MarketplacePage() {
     <AppWindow>
       <AppNavbar
         icon={<ShopIcon size={14} className="text-glass-emerald" />}
-        iconBg="bg-gradient-to-br from-[rgba(52,211,153,0.2)] to-[rgba(52,211,153,0.06)] border-[0.5px] border-[rgba(52,211,153,0.15)]"
+        iconBg="liquid-icon-emerald"
         title="Data Marketplace"
         tabs={[
           { label: "Browse", active: tab === "browse", onClick: () => setTab("browse") },
@@ -444,7 +444,7 @@ export default function MarketplacePage() {
                 </p>
                 <button
                   onClick={loadListings}
-                  className="text-xs text-white/40 transition-colors hover:text-white/60"
+                  className="liquid-link text-xs"
                 >
                   Refresh
                 </button>
@@ -461,7 +461,7 @@ export default function MarketplacePage() {
               {uploadedListings.map((listing) => (
                 <div
                   key={listing.id}
-                  className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 transition-colors hover:bg-white/[0.05]"
+                  className="liquid-panel-soft rounded-[24px] p-5 transition-colors hover:bg-white/[0.06]"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
@@ -501,7 +501,7 @@ export default function MarketplacePage() {
                         <button
                           onClick={() => handlePurchaseAndDecrypt(listing)}
                           disabled={!connected || !wasmReady || purchasePhase === "processing"}
-                          className="rounded-lg bg-[rgba(52,211,153,0.08)] border-[0.5px] border-[rgba(52,211,153,0.18)] text-glass-emerald shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[rgba(52,211,153,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="liquid-button liquid-button-emerald rounded-full px-3 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           Buy &rarr;
                         </button>
@@ -513,7 +513,7 @@ export default function MarketplacePage() {
 
               {/* Purchase progress */}
               {purchasePhase !== "idle" && (
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6">
+                <div className="liquid-panel rounded-[28px] p-6">
                   <ProgressBar
                     percent={purchaseProgress}
                     label={purchaseProgressLabel}
@@ -536,9 +536,9 @@ export default function MarketplacePage() {
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-green-400/60">Purchased File</p>
                       <div className="mt-2 flex items-center justify-between">
                         <span className="text-sm text-green-300">{purchasedFile.fileName} ({(purchasedFile.fileSize / 1024 / 1024).toFixed(2)} MB)</span>
-                        <button onClick={downloadPurchasedFile} className="rounded-md bg-green-500/15 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/25">
-                          Download
-                        </button>
+                      <button onClick={downloadPurchasedFile} className="rounded-md bg-green-500/15 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/25">
+                        Download
+                      </button>
                       </div>
                     </div>
                   ) : purchasePhase === "done" && decryptedData ? (
@@ -554,7 +554,7 @@ export default function MarketplacePage() {
                   {(purchasePhase === "done" || purchasePhase === "error") && (
                     <button
                       onClick={() => { setPurchasePhase("idle"); setPurchasedFile(null); loadListings(); }}
-                      className="mt-4 rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                      className="liquid-button mt-4 rounded-2xl px-4 py-2.5 text-sm font-medium"
                     >
                       {purchasePhase === "done" ? "Done" : "Retry"}
                     </button>
@@ -566,7 +566,7 @@ export default function MarketplacePage() {
 
           {/* === SELL TAB === */}
           {tab === "sell" && (
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6">
+            <div className="liquid-panel rounded-[28px] p-6">
               {sellPhase === "idle" && (
                 <div className="flex flex-col gap-4">
                   <div>
@@ -578,7 +578,7 @@ export default function MarketplacePage() {
                       value={sellTitle}
                       onChange={(e) => setSellTitle(e.target.value)}
                       placeholder="e.g. Q4 2025 DeFi Analytics Report"
-                      className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="liquid-input w-full rounded-2xl px-4 py-2.5 text-sm text-white placeholder-white/30"
                     />
                   </div>
                   <div>
@@ -590,7 +590,7 @@ export default function MarketplacePage() {
                       onChange={(e) => setSellDescription(e.target.value)}
                       placeholder="What does the buyer get? Include details about format, coverage, etc."
                       rows={3}
-                      className="w-full resize-none rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="liquid-input w-full resize-none rounded-2xl px-4 py-3 text-sm text-white placeholder-white/30"
                     />
                   </div>
                   <div>
@@ -600,7 +600,7 @@ export default function MarketplacePage() {
                     <select
                       value={sellCategory}
                       onChange={(e) => setSellCategory(e.target.value)}
-                      className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="liquid-input w-full rounded-2xl px-4 py-2.5 text-sm text-white"
                     >
                       <option value="" className="bg-neutral-900">None</option>
                       {CATEGORIES.map((c) => (
@@ -617,16 +617,16 @@ export default function MarketplacePage() {
                       value={sellFee}
                       onChange={(e) => setSellFee(e.target.value)}
                       placeholder="0.01"
-                      className="w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                      className="liquid-input w-full rounded-2xl px-4 py-2.5 text-sm text-white placeholder-white/30"
                     />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-white/50">
                       Data to encrypt
                     </label>
-                    <div className="flex gap-1 rounded-md bg-white/5 p-0.5 mb-3">
-                      <button onClick={() => setSellInputMode("text")} className={`flex-1 rounded px-2 py-1 text-xs font-medium transition-colors ${sellInputMode === "text" ? "bg-white/10 text-white" : "text-white/40"}`}>Text</button>
-                      <button onClick={() => setSellInputMode("file")} className={`flex-1 rounded px-2 py-1 text-xs font-medium transition-colors ${sellInputMode === "file" ? "bg-white/10 text-white" : "text-white/40"}`}>File</button>
+                    <div className="liquid-segmented mb-3 flex gap-1 rounded-full p-1">
+                      <button onClick={() => setSellInputMode("text")} className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${sellInputMode === "text" ? "liquid-panel-soft text-white" : "text-white/40"}`}>Text</button>
+                      <button onClick={() => setSellInputMode("file")} className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${sellInputMode === "file" ? "liquid-panel-soft text-white" : "text-white/40"}`}>File</button>
                     </div>
                     {sellInputMode === "file" ? (
                       <div className="rounded-lg border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
@@ -648,14 +648,14 @@ export default function MarketplacePage() {
                         onChange={(e) => setSellSecret(e.target.value)}
                         placeholder="Paste the data buyers will receive after purchase..."
                         rows={4}
-                        className="w-full resize-none rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-demo-market/40 focus:ring-1 focus:ring-demo-market/30"
+                        className="liquid-input w-full resize-none rounded-2xl px-4 py-3 text-sm text-white placeholder-white/30"
                       />
                     )}
                   </div>
                   <button
                     onClick={handleSell}
                     disabled={!sellFormValid}
-                    className="rounded-lg bg-[rgba(52,211,153,0.08)] border-[0.5px] border-[rgba(52,211,153,0.18)] text-glass-emerald shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[rgba(52,211,153,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="liquid-button liquid-button-emerald rounded-2xl px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     List for Sale
                   </button>
@@ -682,7 +682,7 @@ export default function MarketplacePage() {
                       </div>
                       <button
                         onClick={() => setSellPhase("idle")}
-                        className="rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                        className="liquid-button rounded-2xl px-4 py-2.5 text-sm font-medium"
                       >
                         Retry
                       </button>
@@ -726,7 +726,7 @@ export default function MarketplacePage() {
                       setSellInputMode("text");
                       loadListings();
                     }}
-                    className="rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                    className="liquid-button rounded-2xl px-4 py-2.5 text-sm font-medium"
                   >
                     List Another
                   </button>
@@ -747,10 +747,10 @@ export default function MarketplacePage() {
                 </div>
               ) : (
                 purchasedListings.map((listing) => (
-                  <div
-                    key={listing.id}
-                    className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5"
-                  >
+                <div
+                  key={listing.id}
+                    className="liquid-panel-soft rounded-[24px] p-5"
+                >
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">

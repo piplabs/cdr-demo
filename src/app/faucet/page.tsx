@@ -85,7 +85,7 @@ export default function FaucetPage() {
     <AppWindow>
       <AppNavbar
         icon={<DropletIcon size={14} className="text-glass-sky" />}
-        iconBg="bg-gradient-to-br from-[rgba(56,189,248,0.2)] to-[rgba(56,189,248,0.06)] border-[0.5px] border-[rgba(56,189,248,0.15)]"
+        iconBg="liquid-icon-sky"
         title="Faucet"
       />
       <div className="px-14 pb-20 pt-9">
@@ -109,11 +109,11 @@ export default function FaucetPage() {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="0x..."
-          className="mt-2 w-full rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-3 font-mono text-sm text-white placeholder-white/30 shadow-[inset_0_0.5px_0_rgba(255,255,255,0.02)] outline-none transition-colors focus:border-white/[0.1]"
+          className="liquid-input mt-2 w-full rounded-2xl px-4 py-3 font-mono text-sm text-white placeholder-white/30"
         />
 
         {connected && balance !== null && (
-          <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-center">
+          <div className="liquid-panel-soft mt-4 rounded-2xl px-4 py-3 text-center">
             <span className="text-sm text-white/50">Your balance: </span>
             <span className="text-sm font-medium text-white">{balance} IP</span>
           </div>
@@ -122,7 +122,7 @@ export default function FaucetPage() {
         <button
           onClick={requestTokens}
           disabled={disabled}
-          className="mt-4 w-full rounded-lg bg-[rgba(56,189,248,0.08)] border-[0.5px] border-[rgba(56,189,248,0.18)] py-3 text-sm font-semibold text-glass-sky shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(56,189,248,0.14)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="liquid-button liquid-button-sky mt-4 w-full rounded-2xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading
             ? "Sending..."
@@ -132,7 +132,7 @@ export default function FaucetPage() {
         </button>
 
         {txHash && (
-          <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] p-4">
+          <div className="liquid-panel-soft mt-4 rounded-2xl p-4">
             <p className="text-sm text-white/60">
               Sent 1 IP successfully
             </p>
