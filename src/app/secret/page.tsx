@@ -2,13 +2,17 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { fromHex, toBytes, toHex } from "viem";
+import { createWalletClient, custom, fromHex, toBytes, toHex } from "viem";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { cdrAbi, contractAddresses } from "@piplabs/cdr-contracts";
+import { CONTRACTS, whitelistConditionAbi } from "@/config/contracts";
+import { classifyRecipient, dedupeAddresses, type ClassifiedRecipient } from "@/lib/recipients";
 import { decryptFile, decryptPartial as eciesDecrypt, tdh2Combine } from "@piplabs/cdr-crypto";
 import { uuidToLabel } from "@piplabs/cdr-sdk";
 
+import { useWallets } from "@privy-io/react-auth";
 import { useCDRClient } from "@/hooks/use-cdr-client";
+import { cdrDevnet } from "@/config/chain";
 import { useWasm } from "@/providers/wasm-provider";
 import { ProgressBar } from "@/components/progress-bar";
 import { HowItWorks } from "@/components/how-it-works";
@@ -31,6 +35,7 @@ type Phase = "idle" | "working" | "done" | "error";
 function SecretShareInner() {
   const { client, publicClient, getWriteClient, address, connected } =
     useCDRClient();
+  const { wallets } = useWallets();
   const { ready: wasmReady, error: wasmError } = useWasm();
   const searchParams = useSearchParams();
 
@@ -50,6 +55,7 @@ function SecretShareInner() {
   const [shareLink, setShareLink] = useState("");
   const [inputMode, setInputMode] = useState<"text" | "file">("text");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [recipients, setRecipients] = useState<string[]>(["", "", ""]);
 
   /* ---- Reveal state ---- */
   const [revealInput, setRevealInput] = useState(prefilledId);
@@ -66,6 +72,11 @@ function SecretShareInner() {
     }
   }, [prefilledId]);
 
+  const classified: ClassifiedRecipient[] = recipients.map(classifyRecipient);
+  const hasInvalidRecipient = classified.some(
+    (c, i) => recipients[i].trim().length > 0 && c.kind === "invalid",
+  );
+
   /* ---------------------------------------------------------------- */
   /*  Helpers                                                          */
   /* ---------------------------------------------------------------- */
@@ -77,6 +88,13 @@ function SecretShareInner() {
     setErrorMsg("");
     setSelectedFile(null);
     setRevealedFile(null);
+  }
+
+  function resetAllInputs() {
+    reset();
+    setSecretText("");
+    setShareLink("");
+    setRecipients(["", "", ""]);
   }
 
   function parseVaultId(raw: string): number {
@@ -120,113 +138,163 @@ function SecretShareInner() {
   const handleCreate = useCallback(async () => {
     setPhase("working");
     setProgress(0);
-    setProgressLabel("Creating secure vault...");
+    setProgressLabel("Resolving recipients...");
     setShareLink("");
     setErrorMsg("");
 
     try {
+      if (!CONTRACTS.WHITELIST_CONDITION) {
+        throw new Error(
+          "WhitelistCondition address not configured (NEXT_PUBLIC_WHITELIST_CONDITION)",
+        );
+      }
+
+      const classifiedList = recipients
+        .filter((r) => r.trim().length > 0)
+        .map(classifyRecipient);
+      const invalid = classifiedList.find((c) => c.kind === "invalid");
+      if (invalid) {
+        throw new Error(`Invalid recipient: ${invalid.value}`);
+      }
+      const emails = classifiedList
+        .filter((c): c is { kind: "email"; value: string } => c.kind === "email")
+        .map((c) => c.value);
+      const rawAddrs = classifiedList
+        .filter(
+          (c): c is { kind: "address"; value: `0x${string}` } =>
+            c.kind === "address",
+        )
+        .map((c) => c.value);
+
+      let resolvedEmailAddrs: `0x${string}`[] = [];
+      if (emails.length > 0) {
+        const res = await fetch("/api/privy/resolve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ emails }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: "unknown" }));
+          throw new Error(body.error || `Privy resolve failed (${res.status})`);
+        }
+        const data = (await res.json()) as {
+          results: { email: string; address: `0x${string}` }[];
+        };
+        resolvedEmailAddrs = data.results.map((r) => r.address);
+      }
+
+      const whitelist = dedupeAddresses([...resolvedEmailAddrs, ...rawAddrs]);
+      setProgress(15);
+
+      let filePayload: {
+        cid: string;
+        key: string;
+        fileName: string;
+        fileSize: number;
+      } | null = null;
       if (inputMode === "file" && selectedFile) {
-        // Step 1: Upload file to storage backend
-        setProgress(5);
         setProgressLabel("Uploading file...");
         const formData = new FormData();
         formData.append("file", selectedFile);
         formData.append("address", address!);
-        const uploadRes = await fetch("/api/storage/upload", { method: "POST", body: formData });
+        const uploadRes = await fetch("/api/storage/upload", {
+          method: "POST",
+          body: formData,
+        });
         if (!uploadRes.ok) {
           const err = await uploadRes.json();
           throw new Error(err.error || "File upload failed");
         }
-        const { cid, encryptionKey, fileName, fileSize } = await uploadRes.json();
+        filePayload = await uploadRes.json();
         setProgress(30);
-
-        // Step 2: Allocate vault
-        setProgressLabel("Creating secure vault...");
-        const writeClient = await getWriteClient();
-        const { uuid } = await writeClient.uploader.allocate({
-          updatable: false,
-          writeConditionAddr: address!,
-          readConditionAddr: address!,
-          writeConditionData: "0x",
-          readConditionData: "0x",
-        });
-        setProgress(45);
-
-        // Step 3: Encrypt file reference payload
-        setProgressLabel("Encrypting reference...");
-        const payload = JSON.stringify({ type: "file", cid, key: encryptionKey, fileName, fileSize });
-        const dataKey = new TextEncoder().encode(payload);
-        const globalPubKey = await client.observer.getGlobalPubKey();
-        const label = uuidToLabel(uuid);
-        const ciphertext = await writeClient.uploader.encryptDataKey({ dataKey, globalPubKey, label });
-        setProgress(65);
-
-        // Step 4: Write to CDR
-        setProgressLabel("Storing on-chain...");
-        await writeClient.uploader.write({
-          uuid,
-          accessAuxData: "0x",
-          encryptedData: toHex(ciphertext.raw),
-        });
-
-        setProgress(100);
-        setProgressLabel("Done!");
-        const link = `${window.location.origin}/secret/${uuid}`;
-        setShareLink(link);
-        setPhase("done");
-      } else {
-        // Text mode flow
-        // Step 1: Allocate vault
-        setProgress(10);
-        setProgressLabel("Creating secure vault...");
-        const writeClient = await getWriteClient();
-        const { uuid } = await writeClient.uploader.allocate({
-          updatable: false,
-          writeConditionAddr: address!,
-          readConditionAddr: address!,
-          writeConditionData: "0x",
-          readConditionData: "0x",
-        });
-
-        // Step 2: Fetch DKG key
-        setProgress(35);
-        setProgressLabel("Connecting to key network...");
-        const globalPubKey = await client.observer.getGlobalPubKey();
-
-        // Step 3: Encrypt
-        setProgress(55);
-        setProgressLabel("Encrypting your secret...");
-        const dataKey = new TextEncoder().encode(secretText);
-        const label = uuidToLabel(uuid);
-        const ciphertext = await writeClient.uploader.encryptDataKey({
-          dataKey,
-          globalPubKey,
-          label,
-        });
-
-        // Step 4: Write on-chain
-        setProgress(75);
-        setProgressLabel("Storing on-chain...");
-        await writeClient.uploader.write({
-          uuid,
-          accessAuxData: "0x",
-          encryptedData: toHex(ciphertext.raw),
-        });
-
-        // Done
-        setProgress(100);
-        setProgressLabel("Done!");
-        const link = `${window.location.origin}/secret/${uuid}`;
-        setShareLink(link);
-        setPhase("done");
       }
+
+      setProgressLabel("Creating secure vault...");
+      const writeClient = await getWriteClient();
+      const { uuid } = await writeClient.uploader.allocate({
+        updatable: false,
+        writeConditionAddr: CONTRACTS.WHITELIST_CONDITION,
+        readConditionAddr: CONTRACTS.WHITELIST_CONDITION,
+        writeConditionData: "0x",
+        readConditionData: "0x",
+      });
+      setProgress(45);
+
+      setProgressLabel("Seeding access list...");
+      const wallet = wallets[0];
+      if (!wallet) throw new Error("No wallet connected");
+      const provider = await wallet.getEthereumProvider();
+      const walletClient = createWalletClient({
+        chain: cdrDevnet,
+        transport: custom(provider),
+        account: wallet.address as `0x${string}`,
+      });
+      // Run the register tx in parallel with the DKG pubkey fetch — they are
+      // independent and `getGlobalPubKey` usually dominates latency.
+      const [, globalPubKey] = await Promise.all([
+        walletClient
+          .writeContract({
+            address: CONTRACTS.WHITELIST_CONDITION,
+            abi: whitelistConditionAbi,
+            functionName: "registerWithInitial",
+            args: [uuid, whitelist],
+          })
+          .then((hash) =>
+            publicClient.waitForTransactionReceipt({ hash }),
+          ),
+        client.observer.getGlobalPubKey(),
+      ]);
+      setProgress(60);
+
+      setProgressLabel("Encrypting your secret...");
+      const payloadBytes = filePayload
+        ? new TextEncoder().encode(
+            JSON.stringify({
+              type: "file",
+              cid: filePayload.cid,
+              key: filePayload.key,
+              fileName: filePayload.fileName,
+              fileSize: filePayload.fileSize,
+            }),
+          )
+        : new TextEncoder().encode(secretText);
+      const label = uuidToLabel(uuid);
+      const ciphertext = await writeClient.uploader.encryptDataKey({
+        dataKey: payloadBytes,
+        globalPubKey,
+        label,
+      });
+      setProgress(80);
+
+      setProgressLabel("Storing on-chain...");
+      await writeClient.uploader.write({
+        uuid,
+        accessAuxData: "0x",
+        encryptedData: toHex(ciphertext.raw),
+      });
+
+      setProgress(100);
+      setProgressLabel("Done!");
+      const link = `${window.location.origin}/secret/${uuid}`;
+      setShareLink(link);
+      setPhase("done");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMsg(msg);
       setProgressLabel("Failed");
       setPhase("error");
     }
-  }, [address, client, getWriteClient, secretText, inputMode, selectedFile]);
+  }, [
+    address,
+    client,
+    getWriteClient,
+    publicClient,
+    secretText,
+    inputMode,
+    selectedFile,
+    recipients,
+    wallets,
+  ]);
 
   /* ---------------------------------------------------------------- */
   /*  Reveal flow                                                      */
@@ -345,18 +413,29 @@ function SecretShareInner() {
       setRevealedText(decoded);
       setPhase("done");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMsg(msg);
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      const looksLikeWhitelistReject =
+        /revert/i.test(rawMsg) ||
+        /condition/i.test(rawMsg) ||
+        /execution reverted/i.test(rawMsg);
+      const friendly = looksLikeWhitelistReject && address
+        ? `This secret is not shared with your wallet (${address.slice(0, 6)}…${address.slice(-4)}). Log out and try a different account.`
+        : rawMsg;
+      setErrorMsg(friendly);
       setProgressLabel("Failed");
       setPhase("error");
     }
-  }, [client, getWriteClient, publicClient, revealInput]);
+  }, [address, client, getWriteClient, publicClient, revealInput]);
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
 
-  const canCreate = connected && wasmReady && (inputMode === "text" ? secretText.trim().length > 0 : !!selectedFile);
+  const canCreate =
+    connected &&
+    wasmReady &&
+    !hasInvalidRecipient &&
+    (inputMode === "text" ? secretText.trim().length > 0 : !!selectedFile);
   const canReveal = connected && wasmReady && revealInput.trim().length > 0;
   const isWorking = phase === "working";
 
@@ -448,6 +527,49 @@ function SecretShareInner() {
                     />
                   )}
                 </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-white/40">
+                    Share With (optional)
+                  </label>
+                  <p className="mb-2 text-[11px] text-white/40">
+                    Up to 3 emails or wallet addresses. Email recipients can
+                    decrypt after logging in with that email via Privy.
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {recipients.map((value, idx) => {
+                      const c = classified[idx];
+                      const showError =
+                        value.trim().length > 0 && c.kind === "invalid";
+                      const showOk =
+                        value.trim().length > 0 && c.kind !== "invalid";
+                      return (
+                        <div key={idx}>
+                          <input
+                            value={value}
+                            onChange={(e) => {
+                              const next = [...recipients];
+                              next[idx] = e.target.value;
+                              setRecipients(next);
+                            }}
+                            placeholder="email@example.com or 0x…"
+                            className={`w-full rounded-lg border-[0.5px] bg-white/[0.02] px-4 py-2 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20 ${
+                              showError
+                                ? "border-red-500/40"
+                                : showOk
+                                ? "border-green-500/30"
+                                : "border-white/[0.06]"
+                            }`}
+                          />
+                          {showError && (
+                            <p className="mt-0.5 text-[10px] text-red-400/70">
+                              Not a valid email or wallet address
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
                 <button
                   disabled={!canCreate}
                   onClick={handleCreate}
@@ -506,12 +628,8 @@ function SecretShareInner() {
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    reset();
-                    setSecretText("");
-                    setShareLink("");
-                  }}
-                  className="liquid-button rounded-2xl px-4 py-2.5 text-sm font-medium"
+                  onClick={resetAllInputs}
+                  className="rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
                 >
                   Create Another
                 </button>

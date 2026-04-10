@@ -17,6 +17,8 @@ export const CONTRACTS = {
   DEPIN_BACKEND: (process.env.NEXT_PUBLIC_DEPIN_BACKEND ?? "") as `0x${string}`,
   // ConfidentialInference — set after deployment via env var
   CONFIDENTIAL_INFERENCE: (process.env.NEXT_PUBLIC_CONFIDENTIAL_INFERENCE ?? "") as `0x${string}`,
+  // WhitelistCondition — set after deployment via env var
+  WHITELIST_CONDITION: (process.env.NEXT_PUBLIC_WHITELIST_CONDITION ?? "") as `0x${string}`,
 } as const;
 
 // ============================================================
@@ -429,5 +431,46 @@ export const depinAbi = [
       { name: "provider", type: "address", indexed: true },
       { name: "amount", type: "uint256", indexed: false },
     ],
+  },
+] as const;
+
+/** WhitelistCondition ABI (minimal — only the functions the frontend calls) */
+export const whitelistConditionAbi = [
+  {
+    type: "function",
+    name: "registerWithInitial",
+    inputs: [
+      { name: "uuid", type: "uint32" },
+      { name: "initial", type: "address[]" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "isWhitelisted",
+    inputs: [
+      { name: "uuid", type: "uint32" },
+      { name: "account", type: "address" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "vaultCreator",
+    inputs: [{ name: "uuid", type: "uint32" }],
+    outputs: [{ name: "", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "error",
+    name: "AlreadyRegistered",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotCreator",
+    inputs: [],
   },
 ] as const;
