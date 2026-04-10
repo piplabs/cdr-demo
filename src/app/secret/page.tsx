@@ -425,8 +425,15 @@ function SecretShareInner() {
       setRevealedText(decoded);
       setPhase("done");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMsg(msg);
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      const looksLikeWhitelistReject =
+        /revert/i.test(rawMsg) ||
+        /condition/i.test(rawMsg) ||
+        /execution reverted/i.test(rawMsg);
+      const friendly = looksLikeWhitelistReject && address
+        ? `This secret is not shared with your wallet (${address.slice(0, 6)}…${address.slice(-4)}). Log out and try a different account.`
+        : rawMsg;
+      setErrorMsg(friendly);
       setProgressLabel("Failed");
       setPhase("error");
     }
