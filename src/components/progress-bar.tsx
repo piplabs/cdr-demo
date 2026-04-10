@@ -25,13 +25,13 @@ export function ProgressBar({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
+      <div className="theme-track h-2 w-full overflow-hidden rounded-full">
         <div
           className={`h-full rounded-full transition-all duration-700 ease-out ${fillClass}`}
           style={{ width: `${Math.min(percent, 100)}%` }}
         />
       </div>
-      <p className={`text-xs ${error ? "text-red-400" : percent >= 100 ? "text-green-400" : "text-white/50"}`}>
+      <p className={`text-xs ${error ? "text-red-400" : percent >= 100 ? "text-green-400" : "theme-text-secondary"}`}>
         {label}
       </p>
     </div>

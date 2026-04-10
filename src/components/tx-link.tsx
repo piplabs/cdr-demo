@@ -15,10 +15,10 @@ export function TxLink({ hash }: { hash: string }) {
   return (
     <button
       onClick={copy}
-      className="inline-flex items-center gap-1.5 rounded bg-white/5 px-2 py-1 font-mono text-xs text-white/70 transition-colors hover:bg-white/10"
+      className="liquid-button inline-flex items-center gap-1.5 rounded px-2 py-1 font-mono text-xs"
     >
       {short}
-      <span className="text-white/40">{copied ? "copied" : "copy"}</span>
+      <span className="theme-text-tertiary">{copied ? "copied" : "copy"}</span>
     </button>
   );
 }

@@ -11,9 +11,9 @@ export function AppWindow({ children }: AppWindowProps) {
 
   return (
     <div
-      className="fixed inset-x-4 bottom-[76px] top-12 z-50 flex flex-col overflow-hidden rounded-[20px] shadow-[0_24px_80px_rgba(0,0,0,0.5),0_0_0_0.5px_rgba(255,255,255,0.06)] [animation:window-in_0.35s_cubic-bezier(0.16,1,0.3,1)]"
+      className="glass-thick fixed bottom-4 left-1/2 top-14 z-50 flex w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 flex-col overflow-hidden rounded-[24px] [animation:window-in_0.35s_cubic-bezier(0.16,1,0.3,1)]"
     >
-      <div className="flex h-10 flex-shrink-0 items-center border-b-[0.5px] border-white/[0.05] bg-[rgba(15,15,25,0.65)] px-4 shadow-[inset_0_0.5px_0_rgba(255,255,255,0.04)] backdrop-blur-[48px] [backdrop-filter:blur(48px)_saturate(1.6)] [-webkit-backdrop-filter:blur(48px)_saturate(1.6)]">
+      <div className="flex h-10 flex-shrink-0 items-center border-b border-white/[0.06] bg-white/[0.04] px-4">
         <div className="flex gap-[7px]">
           <button
             onClick={() => router.push("/desktop")}
@@ -24,7 +24,7 @@ export function AppWindow({ children }: AppWindowProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-[rgba(8,8,16,0.92)]">
+      <div className="flex-1 overflow-y-auto bg-[color:var(--glass-bg-strong)]">
         {children}
       </div>
     </div>
