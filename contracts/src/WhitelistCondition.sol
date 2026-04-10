@@ -20,6 +20,20 @@ contract WhitelistCondition {
         isWhitelisted[uuid][msg.sender] = true;
     }
 
+    /// @notice Register a vault and seed the whitelist in one call.
+    ///         Creator is `msg.sender` and is automatically whitelisted.
+    ///         Duplicates in `initial` are harmless (idempotent writes).
+    /// @param uuid The CDR vault UUID (from CDR.allocate)
+    /// @param initial Addresses to add to the whitelist besides the creator
+    function registerWithInitial(uint32 uuid, address[] calldata initial) external {
+        if (vaultCreator[uuid] != address(0)) revert AlreadyRegistered();
+        vaultCreator[uuid] = msg.sender;
+        isWhitelisted[uuid][msg.sender] = true;
+        for (uint256 i = 0; i < initial.length; i++) {
+            isWhitelisted[uuid][initial[i]] = true;
+        }
+    }
+
     /// @notice Add an address to the vault's whitelist. Only the creator can call.
     /// @param uuid The CDR vault UUID
     /// @param account The address to whitelist
