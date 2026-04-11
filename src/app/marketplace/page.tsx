@@ -18,8 +18,6 @@ import { cdrDevnet } from "@/config/chain";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { decryptPartial as eciesDecrypt, tdh2Combine, decryptFile } from "@piplabs/cdr-crypto";
 import { CONTRACTS, marketplaceAbi } from "@/config/contracts";
-import { AppNavbar } from "@/components/desktop/app-navbar";
-import { ShopIcon } from "@/components/desktop/dock-icons";
 
 function truncateAddress(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -398,24 +396,33 @@ export default function MarketplacePage() {
   const sellFormValid = connected && wasmReady && sellTitle.trim() && sellFee.trim() && (sellInputMode === "text" ? sellSecret.trim() : !!sellFile);
 
   return (
-    <div className="px-6">
-      <AppNavbar
-        icon={<ShopIcon size={14} className="text-glass-emerald" />}
-        iconBg="liquid-icon-emerald"
-        title="Data Marketplace"
-        tabs={[
-          { label: "Browse", active: tab === "browse", onClick: () => setTab("browse") },
-          { label: "Sell", active: tab === "sell", onClick: () => setTab("sell") },
-          { label: "My Purchases", active: tab === "purchases", onClick: () => setTab("purchases") },
-        ]}
-      />
-      <div className="mx-auto max-w-[600px] pb-8">
-        <h1 className="text-2xl font-bold tracking-tight">
+    <div className="mx-auto max-w-[640px] px-6">
+      <div className="pb-8">
+        <h1 className="text-[32px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
           Data Marketplace
         </h1>
-        <p className="mt-2 text-sm text-white/50">
+        <p className="mt-2 text-[15px] text-[color:var(--text-tertiary)]">
           Buy and sell encrypted data. No middleman, no platform cuts.
         </p>
+        <div className="mt-6 inline-flex rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-1)] p-1">
+          {([
+            { key: "browse", label: "Browse" },
+            { key: "sell", label: "Sell" },
+            { key: "purchases", label: "My Purchases" },
+          ] as const).map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`rounded-md px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                tab === t.key
+                  ? "bg-[color:var(--surface-0)] text-[color:var(--text-primary)] shadow-[0_1px_2px_rgba(11,15,23,0.08)]"
+                  : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
         {!connected && (
           <div className="mt-4 rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-400">

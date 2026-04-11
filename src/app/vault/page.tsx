@@ -4,8 +4,6 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCDRClient } from "@/hooks/use-cdr-client";
 import { cdrAbi, contractAddresses } from "@piplabs/cdr-contracts";
-import { AppNavbar } from "@/components/desktop/app-navbar";
-import { BoxIcon } from "@/components/desktop/dock-icons";
 
 interface VaultData {
   updatable: boolean;
@@ -32,12 +30,7 @@ function truncateAddress(addr: string) {
 
 export default function VaultPage() {
   return (
-    <div className="px-6">
-      <AppNavbar
-        icon={<BoxIcon size={14} className="text-glass-violet" />}
-        iconBg="liquid-icon-violet"
-        title="Vault Browser"
-      />
+    <div className="mx-auto max-w-6xl px-6">
       <Suspense>
         <VaultPageInner />
       </Suspense>

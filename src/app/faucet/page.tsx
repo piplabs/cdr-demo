@@ -5,8 +5,6 @@ import { isAddress } from "viem";
 import { useCDRClient } from "@/hooks/use-cdr-client";
 import { useBalance } from "@/hooks/use-balance";
 import { TxLink } from "@/components/tx-link";
-import { AppNavbar } from "@/components/desktop/app-navbar";
-import { DropletIcon } from "@/components/desktop/dock-icons";
 
 export default function FaucetPage() {
   const { address: walletAddress, connected } = useCDRClient();
@@ -81,14 +79,9 @@ export default function FaucetPage() {
   const disabled = loading || !isValid || countdown > 0;
 
   return (
-    <div className="px-6">
-      <AppNavbar
-        icon={<DropletIcon size={14} className="text-glass-sky" />}
-        iconBg="liquid-icon-sky"
-        title="Faucet"
-      />
+    <div className="mx-auto max-w-lg px-6">
       <div className="pb-8">
-      <div className="mx-auto max-w-lg">
+      <div>
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight">Faucet</h1>
         <p className="mt-2 text-sm text-white/50">

@@ -17,8 +17,6 @@ import { useWasm } from "@/providers/wasm-provider";
 import { ProgressBar } from "@/components/progress-bar";
 import { HowItWorks } from "@/components/how-it-works";
 import { collectPartialsWithProgress } from "@/lib/collect-partials";
-import { AppNavbar } from "@/components/desktop/app-navbar";
-import { LockIcon } from "@/components/desktop/dock-icons";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -440,16 +438,32 @@ function SecretShareInner() {
 
   return (
     <>
-      <AppNavbar
-        icon={<LockIcon size={14} className="text-glass-indigo" />}
-        iconBg="liquid-icon-indigo"
-        title="Private Storage"
-        tabs={[
-          { label: "Create", active: tab === "create", onClick: () => { if (!isWorking) { setTab("create"); reset(); } } },
-          { label: "Reveal", active: tab === "reveal", onClick: () => { if (!isWorking) { setTab("reveal"); reset(); } } },
-        ]}
-      />
       <div className="mx-auto max-w-md pb-8">
+        <h1 className="mb-1 text-[32px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+          Private Storage
+        </h1>
+        <p className="mb-6 text-[15px] text-[color:var(--text-tertiary)]">
+          Encrypt a secret and share it with up to three recipients.
+        </p>
+        <div className="mb-6 inline-flex rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-1)] p-1">
+          {([
+            { key: "create", label: "Create" },
+            { key: "reveal", label: "Reveal" },
+          ] as const).map((t) => (
+            <button
+              key={t.key}
+              onClick={() => { if (!isWorking) { setTab(t.key); reset(); } }}
+              disabled={isWorking}
+              className={`rounded-md px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                tab === t.key
+                  ? "bg-[color:var(--surface-0)] text-[color:var(--text-primary)] shadow-[0_1px_2px_rgba(11,15,23,0.08)]"
+                  : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         {/* Wallet / WASM warnings */}
         {!connected && (
           <div className="liquid-panel-soft rounded-2xl px-4 py-3 text-sm text-white/60">

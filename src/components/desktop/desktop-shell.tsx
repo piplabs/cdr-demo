@@ -9,9 +9,8 @@ interface DesktopShellProps {
 export function DesktopShell({ children }: DesktopShellProps) {
   return (
     <>
-      <div className="wallpaper" />
       <MenuBar />
-      <main className="relative z-[1] pb-20 pt-24">{children}</main>
+      <main className="pb-24 pt-12">{children}</main>
     </>
   );
 }
