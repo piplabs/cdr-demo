@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  ctx: { params: Promise<{ path: string[] }> },
+  ctx: { params: Promise<{ segments: string[] }> },
 ) {
   const upstreamBase = process.env.COMETBFT_RPC_URL;
   if (!upstreamBase) {
@@ -28,9 +28,14 @@ export async function GET(
     );
   }
 
-  const { path } = await ctx.params;
+  const { segments } = await ctx.params;
   const base = upstreamBase.replace(/\/+$/, "");
-  const upstreamUrl = `${base}/${path.join("/")}${req.nextUrl.search}`;
+
+  // NOTE: the dynamic segment is named `segments`, not `path`, because
+  // CometBFT's abci_query expects a `path` *query* parameter. If the dynamic
+  // segment also used the name `path`, Next.js collapses the two and the query
+  // value is lost, causing CometBFT to reject with "no query path provided".
+  const upstreamUrl = `${base}/${segments.join("/")}${req.nextUrl.search}`;
 
   try {
     const resp = await fetch(upstreamUrl, {
