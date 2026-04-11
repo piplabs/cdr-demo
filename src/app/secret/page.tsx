@@ -675,6 +675,9 @@ function SecretShareInner() {
                 >
                   Reveal
                 </button>
+                <p className="text-center text-xs text-white/40">
+                  Reading a vault costs 0.03 IP (paid to validators for decryption).
+                </p>
               </>
             )}
 

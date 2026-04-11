@@ -27,6 +27,33 @@ const CATEGORIES = ["Analytics", "Research", "Media", "Code", "Other"] as const;
 
 type Tab = "browse" | "sell" | "purchases";
 
+type CachedPayload =
+  | { kind: "text"; text: string }
+  | { kind: "file"; file: { cid: string; key: string; fileName: string; fileSize: number } };
+
+function purchaseCacheKey(chainId: number, addr: string, listingId: number) {
+  return `cdr-purchase:${chainId}:${addr.toLowerCase()}:${listingId}`;
+}
+
+function readPurchaseCache(chainId: number, addr: string | undefined, listingId: number): CachedPayload | null {
+  if (!addr || typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(purchaseCacheKey(chainId, addr, listingId));
+    return raw ? (JSON.parse(raw) as CachedPayload) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writePurchaseCache(chainId: number, addr: string | undefined, listingId: number, payload: CachedPayload) {
+  if (!addr || typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(purchaseCacheKey(chainId, addr, listingId), JSON.stringify(payload));
+  } catch {
+    // ignore quota / privacy-mode errors
+  }
+}
+
 interface ListingData {
   id: number;
   owner: string;
@@ -74,6 +101,14 @@ export default function MarketplacePage() {
   const [purchaseTxHash, setPurchaseTxHash] = useState("");
   const [decryptedData, setDecryptedData] = useState("");
   const [purchasedFile, setPurchasedFile] = useState<{ cid: string; key: string; fileName: string; fileSize: number } | null>(null);
+
+  // View-previously-purchased state (for the "My Purchases" tab)
+  const [viewingId, setViewingId] = useState<number | null>(null);
+  const [viewPhase, setViewPhase] = useState<"idle" | "processing" | "done" | "error">("idle");
+  const [viewProgress, setViewProgress] = useState(0);
+  const [viewProgressLabel, setViewProgressLabel] = useState("");
+  const [viewError, setViewError] = useState("");
+  const [viewPayload, setViewPayload] = useState<CachedPayload | null>(null);
 
   // Load all listings
   const loadListings = useCallback(async () => {
@@ -250,6 +285,75 @@ export default function MarketplacePage() {
     }
   }
 
+  // Shared: fetch vault, collect partials for the given ephemeral privKey, and decrypt.
+  // Caller is responsible for having triggered the on-chain read (purchase or CDR.read)
+  // that emits the partials, and for providing `fromBlock` captured BEFORE that tx.
+  async function decryptVaultToPayload(
+    listing: ListingData,
+    privKey: Uint8Array,
+    fromBlock: bigint,
+    onProgress: (pct: number, label: string) => void,
+  ): Promise<CachedPayload> {
+    const vault = await publicClient.readContract({
+      address: contractAddresses.testnet.cdr as `0x${string}`,
+      abi: cdrAbi,
+      functionName: "vaults",
+      args: [listing.cdrUuid],
+    }) as any;
+    const encryptedData = toBytes(vault.encryptedData);
+    const label = uuidToLabel(listing.cdrUuid);
+
+    onProgress(30, "Collecting validator responses...");
+    const [globalPubKey, threshold] = await Promise.all([
+      client.observer.getGlobalPubKey(),
+      client.observer.getThreshold(),
+    ]);
+
+    const partials = await collectPartialsWithProgress({
+      publicClient: publicClient as any,
+      uuid: listing.cdrUuid,
+      minPartials: threshold,
+      fromBlock,
+      timeoutMs: 120_000,
+      pollIntervalMs: 3_000,
+      onProgress: (collected, needed) => {
+        const pct = 30 + Math.round((collected / needed) * 40);
+        onProgress(pct, `Collecting validator responses (${collected}/${needed})...`);
+      },
+    });
+
+    onProgress(75, "Decrypting...");
+    const decryptedPartials = await Promise.all(
+      partials.map(async (p) => {
+        const decrypted = await eciesDecrypt({
+          encryptedPartial: toBytes(p.encryptedPartial),
+          ephemeralPubKey: toBytes(p.ephemeralPubKey),
+          recipientPrivKey: privKey,
+        });
+        return { name: String(p.pid), pubShare: toBytes(p.pubShare), partial: decrypted };
+      }),
+    );
+
+    const dataKey = await tdh2Combine({
+      ciphertext: { raw: encryptedData, label },
+      partials: decryptedPartials,
+      globalPubKey,
+      label,
+      threshold,
+    });
+
+    const decoded = new TextDecoder().decode(dataKey);
+    try {
+      const parsed = JSON.parse(decoded);
+      if (parsed && parsed.type === "file" && parsed.cid) {
+        return { kind: "file", file: parsed };
+      }
+    } catch {
+      // not JSON — treat as plain text
+    }
+    return { kind: "text", text: decoded };
+  }
+
   // --- Purchase + decrypt flow ---
   async function handlePurchaseAndDecrypt(listing: ListingData) {
     setPurchasePhase("processing");
@@ -273,16 +377,6 @@ export default function MarketplacePage() {
       const privKey = secp256k1.utils.randomPrivateKey();
       const pubKey = secp256k1.getPublicKey(privKey, false);
 
-      // Fetch encrypted data before purchase (need it for decryption later)
-      const vault = await publicClient.readContract({
-        address: contractAddresses.testnet.cdr as `0x${string}`,
-        abi: cdrAbi,
-        functionName: "vaults",
-        args: [listing.cdrUuid],
-      }) as any;
-      const encryptedData = toBytes(vault.encryptedData);
-      const label = uuidToLabel(listing.cdrUuid);
-
       // Step 1: Purchase — marketplace calls CDR.read() atomically
       setPurchaseProgress(5);
       const readFee = await publicClient.readContract({
@@ -303,67 +397,27 @@ export default function MarketplacePage() {
       setPurchaseTxHash(purchaseTx);
       setPurchaseProgress(25);
 
-      // Step 2: Fetch DKG params & collect partials
-      setPurchaseProgressLabel("Collecting validator responses...");
-      setPurchaseProgress(30);
-      const [globalPubKey, threshold] = await Promise.all([
-        client.observer.getGlobalPubKey(),
-        client.observer.getThreshold(),
-      ]);
-
-      const partials = await collectPartialsWithProgress({
-        publicClient: publicClient as any,
-        uuid: listing.cdrUuid,
-        minPartials: threshold,
+      // Step 2: Collect partials and decrypt
+      const payload = await decryptVaultToPayload(
+        listing,
+        privKey,
         fromBlock,
-        timeoutMs: 120_000,
-        pollIntervalMs: 3_000,
-        onProgress: (collected, needed) => {
-          const partialPct = 30 + Math.round((collected / needed) * 40);
-          setPurchaseProgress(partialPct);
-          setPurchaseProgressLabel(`Collecting validator responses (${collected}/${needed})...`);
+        (pct, label) => {
+          setPurchaseProgress(pct);
+          setPurchaseProgressLabel(label);
         },
-      });
-      setPurchaseProgress(70);
-
-      // Step 3: Decrypt
-      setPurchaseProgressLabel("Decrypting...");
-      setPurchaseProgress(75);
-      const decryptedPartials = await Promise.all(
-        partials.map(async (p) => {
-          const decrypted = await eciesDecrypt({
-            encryptedPartial: toBytes(p.encryptedPartial),
-            ephemeralPubKey: toBytes(p.ephemeralPubKey),
-            recipientPrivKey: privKey,
-          });
-          return { name: String(p.pid), pubShare: toBytes(p.pubShare), partial: decrypted };
-        }),
       );
 
-      const dataKey = await tdh2Combine({
-        ciphertext: { raw: encryptedData, label },
-        partials: decryptedPartials,
-        globalPubKey,
-        label,
-        threshold,
-      });
+      // Cache the plaintext so the buyer can re-read later without paying again
+      writePurchaseCache(cdrDevnet.id, address, listing.id, payload);
 
-      const decoded = new TextDecoder().decode(dataKey);
-
-      try {
-        const parsed = JSON.parse(decoded);
-        if (parsed.type === "file" && parsed.cid) {
-          setPurchasedFile(parsed);
-          setDecryptedData("");
-          setPurchaseProgress(100);
-          setPurchaseProgressLabel("Done!");
-          setPurchasePhase("done");
-          return;
-        }
-      } catch {
-        // Not JSON file payload -- treat as text
+      if (payload.kind === "file") {
+        setPurchasedFile(payload.file);
+        setDecryptedData("");
+      } else {
+        setPurchasedFile(null);
+        setDecryptedData(payload.text);
       }
-      setDecryptedData(decoded);
       setPurchaseProgress(100);
       setPurchaseProgressLabel("Done!");
       setPurchasePhase("done");
@@ -371,6 +425,98 @@ export default function MarketplacePage() {
       setPurchaseError(err instanceof Error ? err.message : String(err));
       setPurchasePhase("error");
     }
+  }
+
+  // --- Re-view a previously purchased listing ---
+  // Reads from local cache when available. Otherwise calls CDR.read() directly
+  // (paying only the small readFee, not the full access fee) — the marketplace's
+  // checkReadCondition returns true for any address that has already purchased.
+  async function handleViewPurchased(listing: ListingData) {
+    setViewingId(listing.id);
+    setViewError("");
+    setViewPayload(null);
+
+    // Fast path: local cache
+    const cached = readPurchaseCache(cdrDevnet.id, address, listing.id);
+    if (cached) {
+      setViewPayload(cached);
+      setViewPhase("done");
+      setViewProgress(100);
+      setViewProgressLabel("Loaded from cache");
+      return;
+    }
+
+    setViewPhase("processing");
+    setViewProgress(0);
+    setViewProgressLabel("Requesting re-decryption...");
+
+    try {
+      const wallet = wallets[0];
+      if (!wallet) throw new Error("No wallet");
+      const provider = await wallet.getEthereumProvider();
+      const walletClient = createWalletClient({
+        chain: cdrDevnet,
+        transport: custom(provider),
+        account: wallet.address as `0x${string}`,
+      });
+
+      const privKey = secp256k1.utils.randomPrivateKey();
+      const pubKey = secp256k1.getPublicKey(privKey, false);
+
+      const readFee = await publicClient.readContract({
+        address: contractAddresses.testnet.cdr as `0x${string}`,
+        abi: cdrAbi,
+        functionName: "readFee",
+      }) as bigint;
+
+      setViewProgress(10);
+      const fromBlock = await publicClient.getBlockNumber();
+      const tx = await walletClient.writeContract({
+        address: contractAddresses.testnet.cdr as `0x${string}`,
+        abi: cdrAbi,
+        functionName: "read",
+        args: [listing.cdrUuid, "0x", toHex(pubKey)],
+        value: readFee,
+      });
+      await publicClient.waitForTransactionReceipt({ hash: tx });
+      setViewProgress(25);
+
+      const payload = await decryptVaultToPayload(
+        listing,
+        privKey,
+        fromBlock,
+        (pct, label) => {
+          setViewProgress(pct);
+          setViewProgressLabel(label);
+        },
+      );
+
+      writePurchaseCache(cdrDevnet.id, address, listing.id, payload);
+      setViewPayload(payload);
+      setViewProgress(100);
+      setViewProgressLabel("Done!");
+      setViewPhase("done");
+    } catch (err: unknown) {
+      setViewError(err instanceof Error ? err.message : String(err));
+      setViewPhase("error");
+    }
+  }
+
+  async function downloadViewedFile() {
+    if (!viewPayload || viewPayload.kind !== "file") return;
+    const f = viewPayload.file;
+    const response = await fetch(`/api/storage/download?cid=${f.cid}`);
+    if (!response.ok) throw new Error("Download failed");
+    const encryptedBytes = new Uint8Array(await response.arrayBuffer());
+    const key = fromHex(f.key as `0x${string}`, "bytes");
+    const decrypted = decryptFile({ ciphertext: encryptedBytes, key });
+    const blob = new Blob([decrypted as BlobPart]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = f.fileName;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function downloadPurchasedFile() {
@@ -752,36 +898,97 @@ export default function MarketplacePage() {
                   </p>
                 </div>
               ) : (
-                purchasedListings.map((listing) => (
-                <div
-                  key={listing.id}
-                    className="liquid-panel-soft rounded-[24px] p-5"
-                >
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-white">{listing.title}</p>
-                          {listing.category && (
-                            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/60">
-                              {listing.category}
-                            </span>
+                purchasedListings.map((listing) => {
+                  const isActive = viewingId === listing.id;
+                  const cached = readPurchaseCache(cdrDevnet.id, address, listing.id);
+                  return (
+                    <div key={listing.id} className="liquid-panel-soft rounded-[24px] p-5">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-white">{listing.title}</p>
+                            {listing.category && (
+                              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/60">
+                                {listing.category}
+                              </span>
+                            )}
+                          </div>
+                          {listing.description && (
+                            <p className="mt-1 line-clamp-1 text-xs text-white/40">
+                              {listing.description}
+                            </p>
                           )}
+                          <div className="mt-1.5 flex items-center gap-3 text-xs text-white/30">
+                            <span className="font-mono">{truncateAddress(listing.owner)}</span>
+                          </div>
                         </div>
-                        {listing.description && (
-                          <p className="mt-1 line-clamp-1 text-xs text-white/40">
-                            {listing.description}
-                          </p>
-                        )}
-                        <div className="mt-1.5 flex items-center gap-3 text-xs text-white/30">
-                          <span className="font-mono">{truncateAddress(listing.owner)}</span>
+                        <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+                          <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                            Purchased
+                          </span>
+                          <button
+                            onClick={() => handleViewPurchased(listing)}
+                            disabled={!connected || !wasmReady || (isActive && viewPhase === "processing")}
+                            className="liquid-button rounded-full px-3 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
+                            title={cached ? "View cached plaintext" : "Re-decrypt (pays read fee)"}
+                          >
+                            {isActive && viewPhase === "processing"
+                              ? "Decrypting…"
+                              : cached
+                                ? "View"
+                                : "Decrypt again"}
+                          </button>
                         </div>
                       </div>
-                      <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
-                        Purchased
-                      </span>
+
+                      {isActive && viewPhase === "processing" && (
+                        <div className="mt-4">
+                          <ProgressBar
+                            percent={viewProgress}
+                            label={viewProgressLabel}
+                            accentClass="bg-demo-market"
+                          />
+                        </div>
+                      )}
+
+                      {isActive && viewPhase === "error" && (
+                        <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+                          {viewError}
+                        </div>
+                      )}
+
+                      {isActive && viewPhase === "done" && viewPayload?.kind === "file" && (
+                        <div className="mt-4 rounded-lg border border-green-500/15 bg-green-500/5 p-4">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-green-400/60">
+                            Decrypted File
+                          </p>
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className="text-sm text-green-300">
+                              {viewPayload.file.fileName} ({(viewPayload.file.fileSize / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                            <button
+                              onClick={downloadViewedFile}
+                              className="rounded-md bg-green-500/15 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/25"
+                            >
+                              Download
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {isActive && viewPhase === "done" && viewPayload?.kind === "text" && (
+                        <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400/70">
+                            Decrypted Data
+                          </p>
+                          <p className="mt-1 whitespace-pre-wrap break-words font-mono text-sm text-emerald-300">
+                            {viewPayload.text}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}
