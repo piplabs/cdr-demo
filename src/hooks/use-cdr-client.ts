@@ -12,11 +12,16 @@ export function useCDRClient() {
 
   const wallet = wallets[0];
 
+  // CDR app traffic goes through the same-origin /api/rpc proxy so the server
+  // stays the single point where the upstream RPC URL is configured. Note that
+  // this is deliberately *not* cdrDevnet.rpcUrls.default.http[0] — the chain's
+  // default URL is the public HTTPS endpoint (used by Privy etc.), and only
+  // the app's own viem client is proxied.
   const publicClient = useMemo(
     () =>
       createPublicClient({
         chain: cdrDevnet,
-        transport: http(cdrDevnet.rpcUrls.default.http[0]),
+        transport: http("/api/rpc"),
       }),
     [],
   );

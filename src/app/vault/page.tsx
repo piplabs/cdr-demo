@@ -1,9 +1,8 @@
 "use client";
 
-import { Suspense, useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCDRClient } from "@/hooks/use-cdr-client";
-import { cdrAbi, contractAddresses } from "@piplabs/cdr-contracts";
 
 interface VaultData {
   updatable: boolean;
@@ -52,65 +51,55 @@ function VaultPageInner() {
   const [loadingVaults, setLoadingVaults] = useState(true);
   const [vaultsError, setVaultsError] = useState<string | null>(null);
 
-  // Fetch all VaultAllocated events
-  const fetchAllVaults = useCallback(async () => {
+  // Track the highest uuid we've already shown so Refresh only pulls new ones.
+  const highestUuidRef = useRef<number | null>(null);
+
+  // Fetch vaults from the server-cached /api/vaults endpoint.
+  // First call fetches the full list; subsequent calls request only entries
+  // with uuid > highestUuidRef and merge them into the existing state.
+  const fetchAllVaults = useCallback(async (mode: "full" | "delta" = "full") => {
     setLoadingVaults(true);
     setVaultsError(null);
     try {
-      const CHUNK_SIZE = BigInt(100_000);
-      const latestBlock = await publicClient.getBlockNumber();
-
-      const vaultAllocatedEvent = {
-        type: "event" as const,
-        name: "VaultAllocated" as const,
-        inputs: [
-          { name: "uuid", type: "uint32" as const, indexed: false },
-          { name: "updatable", type: "bool" as const, indexed: false },
-          { name: "writeConditionAddr", type: "address" as const, indexed: false },
-          { name: "readConditionAddr", type: "address" as const, indexed: false },
-          { name: "writeConditionData", type: "bytes" as const, indexed: false },
-          { name: "readConditionData", type: "bytes" as const, indexed: false },
-        ],
+      const qs =
+        mode === "delta" && highestUuidRef.current !== null
+          ? `?sinceUuid=${highestUuidRef.current}`
+          : "";
+      const resp = await fetch(`/api/vaults${qs}`, { cache: "no-store" });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({ error: resp.statusText }));
+        throw new Error(body.error ?? `HTTP ${resp.status}`);
+      }
+      const data = (await resp.json()) as {
+        vaults: VaultListItem[];
+        total: number;
+        mode: "full" | "delta";
       };
 
-      const allLogs: any[] = [];
-      let from = BigInt(0);
-
-      while (from <= latestBlock) {
-        const to = from + CHUNK_SIZE - BigInt(1) > latestBlock
-          ? latestBlock
-          : from + CHUNK_SIZE - BigInt(1);
-
-        const logs = await publicClient.getLogs({
-          address: contractAddresses.testnet.cdr as `0x${string}`,
-          event: vaultAllocatedEvent,
-          fromBlock: from,
-          toBlock: to,
+      if (data.mode === "delta") {
+        // Merge newer entries on top; list stays newest-first.
+        setAllVaults((prev) => {
+          const fresh = [...data.vaults].sort((a, b) => b.uuid - a.uuid);
+          return [...fresh, ...prev];
         });
-
-        allLogs.push(...logs);
-        from = to + BigInt(1);
+        if (data.vaults.length > 0) {
+          const maxUuid = Math.max(...data.vaults.map((v) => v.uuid));
+          highestUuidRef.current = Math.max(highestUuidRef.current ?? -1, maxUuid);
+        }
+      } else {
+        const sorted = [...data.vaults].sort((a, b) => b.uuid - a.uuid);
+        setAllVaults(sorted);
+        highestUuidRef.current = sorted.length > 0 ? sorted[0].uuid : null;
       }
-
-      const vaults: VaultListItem[] = allLogs.map((log) => ({
-        uuid: (log.args as any).uuid,
-        updatable: (log.args as any).updatable,
-        writeConditionAddr: (log.args as any).writeConditionAddr,
-        readConditionAddr: (log.args as any).readConditionAddr,
-      }));
-
-      // Show newest first
-      vaults.reverse();
-      setAllVaults(vaults);
     } catch (err: unknown) {
       setVaultsError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoadingVaults(false);
     }
-  }, [publicClient]);
+  }, []);
 
   useEffect(() => {
-    fetchAllVaults();
+    fetchAllVaults("full");
   }, [fetchAllVaults]);
 
   // Auto-fill and load from ?uuid= query param
@@ -168,7 +157,7 @@ function VaultPageInner() {
             </p>
           </div>
           <button
-            onClick={fetchAllVaults}
+            onClick={() => fetchAllVaults("delta")}
             disabled={loadingVaults}
             className="liquid-button rounded-full px-3 py-1.5 text-xs font-medium disabled:opacity-40"
           >

@@ -25,6 +25,9 @@ function truncateAddress(addr: string): string {
 
 const CATEGORIES = ["Analytics", "Research", "Media", "Code", "Other"] as const;
 
+// Canonical Multicall3 — same address on every EVM chain, including Aeneid.
+const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11" as const;
+
 type Tab = "browse" | "sell" | "purchases";
 
 type CachedPayload =
@@ -110,35 +113,62 @@ export default function MarketplacePage() {
   const [viewError, setViewError] = useState("");
   const [viewPayload, setViewPayload] = useState<CachedPayload | null>(null);
 
-  // Load all listings
+  // Load all listings via Multicall3: one RPC round-trip instead of 1+2N.
   const loadListings = useCallback(async () => {
     if (!publicClient) return;
     setLoading(true);
     try {
-      const count = await publicClient.readContract({
-        address: CONTRACTS.DATA_MARKETPLACE,
-        abi: marketplaceAbi,
-        functionName: "getListingCount",
-      }) as bigint;
-
-      const items: ListingData[] = [];
-      for (let i = 0; i < Number(count); i++) {
-        const [owner, accessFee, cdrUuid, ipfsHash, uploaded, totalSales] = await publicClient.readContract({
+      const count = Number(
+        (await publicClient.readContract({
           address: CONTRACTS.DATA_MARKETPLACE,
           abi: marketplaceAbi,
-          functionName: "getListing",
-          args: [BigInt(i)],
-        }) as [string, bigint, number, string, boolean, bigint];
+          functionName: "getListingCount",
+        })) as bigint,
+      );
 
-        let purchased = false;
-        if (address) {
-          purchased = await publicClient.readContract({
+      if (count === 0) {
+        setListings([]);
+        return;
+      }
+
+      const getListingCalls = Array.from({ length: count }, (_, i) => ({
+        address: CONTRACTS.DATA_MARKETPLACE,
+        abi: marketplaceAbi,
+        functionName: "getListing" as const,
+        args: [BigInt(i)] as const,
+      }));
+
+      const hasPurchasedCalls = address
+        ? Array.from({ length: count }, (_, i) => ({
             address: CONTRACTS.DATA_MARKETPLACE,
             abi: marketplaceAbi,
-            functionName: "hasPurchased",
-            args: [BigInt(i), address],
-          }) as boolean;
-        }
+            functionName: "hasPurchased" as const,
+            args: [BigInt(i), address] as const,
+          }))
+        : [];
+
+      // One batched eth_call → Multicall3.aggregate3
+      const results = await publicClient.multicall({
+        multicallAddress: MULTICALL3_ADDRESS,
+        allowFailure: true,
+        contracts: [...getListingCalls, ...hasPurchasedCalls],
+      });
+
+      const listingResults = results.slice(0, count);
+      const purchasedResults = address ? results.slice(count) : [];
+
+      const items: ListingData[] = [];
+      for (let i = 0; i < count; i++) {
+        const listingRes = listingResults[i];
+        if (listingRes.status !== "success") continue;
+
+        const [owner, accessFee, cdrUuid, ipfsHash, uploaded, totalSales] =
+          listingRes.result as [string, bigint, number, string, boolean, bigint];
+
+        const purchased =
+          address && purchasedResults[i]?.status === "success"
+            ? (purchasedResults[i].result as boolean)
+            : false;
 
         // Parse metadata from ipfsHash field
         let title = `Listing #${i}`;
@@ -156,9 +186,17 @@ export default function MarketplacePage() {
         }
 
         items.push({
-          id: i, owner, accessFee, cdrUuid, ipfsHash, uploaded,
-          totalSales: Number(totalSales), purchased,
-          title, description, category,
+          id: i,
+          owner,
+          accessFee,
+          cdrUuid,
+          ipfsHash,
+          uploaded,
+          totalSales: Number(totalSales),
+          purchased,
+          title,
+          description,
+          category,
         });
       }
       setListings(items);
