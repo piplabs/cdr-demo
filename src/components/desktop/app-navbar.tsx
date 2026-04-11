@@ -9,7 +9,7 @@ interface AppNavbarProps {
 
 export function AppNavbar({ icon, title, iconBg, tabs }: AppNavbarProps) {
   return (
-    <div className="glass-thin sticky top-0 z-10 flex items-center justify-between border-b border-white/[0.04] px-6 py-3">
+    <div className="glass-thin mx-auto mb-6 flex max-w-6xl items-center justify-between rounded-2xl border border-white/[0.06] px-5 py-3">
       <div className="flex items-center gap-2.5">
         <div className={`flex h-7 w-7 items-center justify-center rounded-[7px] ${iconBg}`}>
           {icon}

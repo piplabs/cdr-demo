@@ -4,7 +4,6 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCDRClient } from "@/hooks/use-cdr-client";
 import { cdrAbi, contractAddresses } from "@piplabs/cdr-contracts";
-import { AppWindow } from "@/components/desktop/app-window";
 import { AppNavbar } from "@/components/desktop/app-navbar";
 import { BoxIcon } from "@/components/desktop/dock-icons";
 
@@ -33,7 +32,7 @@ function truncateAddress(addr: string) {
 
 export default function VaultPage() {
   return (
-    <AppWindow>
+    <div className="px-6">
       <AppNavbar
         icon={<BoxIcon size={14} className="text-glass-violet" />}
         iconBg="liquid-icon-violet"
@@ -42,7 +41,7 @@ export default function VaultPage() {
       <Suspense>
         <VaultPageInner />
       </Suspense>
-    </AppWindow>
+    </div>
   );
 }
 

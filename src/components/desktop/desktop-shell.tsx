@@ -11,7 +11,7 @@ export function DesktopShell({ children }: DesktopShellProps) {
     <>
       <div className="wallpaper" />
       <MenuBar />
-      {children}
+      <main className="relative z-[1] pb-20 pt-24">{children}</main>
     </>
   );
 }

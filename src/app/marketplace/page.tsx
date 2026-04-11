@@ -18,7 +18,6 @@ import { cdrDevnet } from "@/config/chain";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { decryptPartial as eciesDecrypt, tdh2Combine, decryptFile } from "@piplabs/cdr-crypto";
 import { CONTRACTS, marketplaceAbi } from "@/config/contracts";
-import { AppWindow } from "@/components/desktop/app-window";
 import { AppNavbar } from "@/components/desktop/app-navbar";
 import { ShopIcon } from "@/components/desktop/dock-icons";
 
@@ -399,7 +398,7 @@ export default function MarketplacePage() {
   const sellFormValid = connected && wasmReady && sellTitle.trim() && sellFee.trim() && (sellInputMode === "text" ? sellSecret.trim() : !!sellFile);
 
   return (
-    <AppWindow>
+    <div className="px-6">
       <AppNavbar
         icon={<ShopIcon size={14} className="text-glass-emerald" />}
         iconBg="liquid-icon-emerald"
@@ -410,7 +409,7 @@ export default function MarketplacePage() {
           { label: "My Purchases", active: tab === "purchases", onClick: () => setTab("purchases") },
         ]}
       />
-      <div className="mx-auto max-w-[600px] px-14 pb-20 pt-9">
+      <div className="mx-auto max-w-[600px] pb-8">
         <h1 className="text-2xl font-bold tracking-tight">
           Data Marketplace
         </h1>
@@ -855,6 +854,6 @@ const plaintext = tdh2Combine(ciphertext, shares, globalPubKey);`}</pre>
           ]}
         />
       </div>
-    </AppWindow>
+    </div>
   );
 }

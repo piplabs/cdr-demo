@@ -17,7 +17,6 @@ import { useWasm } from "@/providers/wasm-provider";
 import { ProgressBar } from "@/components/progress-bar";
 import { HowItWorks } from "@/components/how-it-works";
 import { collectPartialsWithProgress } from "@/lib/collect-partials";
-import { AppWindow } from "@/components/desktop/app-window";
 import { AppNavbar } from "@/components/desktop/app-navbar";
 import { LockIcon } from "@/components/desktop/dock-icons";
 
@@ -450,26 +449,20 @@ function SecretShareInner() {
           { label: "Reveal", active: tab === "reveal", onClick: () => { if (!isWorking) { setTab("reveal"); reset(); } } },
         ]}
       />
-      <div className="mx-auto max-w-lg px-14 pb-20 pt-9">
-        {/* Header */}
-        <h1 className="text-2xl font-bold tracking-tight">Private Storage</h1>
-        <p className="mt-2 text-sm text-white/50">
-          Encrypt data and store it on-chain. Only authorized addresses can decrypt.
-        </p>
-
+      <div className="mx-auto max-w-md pb-8">
         {/* Wallet / WASM warnings */}
         {!connected && (
-          <div className="mt-4 rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-400">
+          <div className="liquid-panel-soft rounded-2xl px-4 py-3 text-sm text-white/60">
             Connect your wallet to continue.
           </div>
         )}
         {connected && !wasmReady && !wasmError && (
-          <div className="mt-4 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50">
+          <div className="liquid-panel-soft rounded-2xl px-4 py-3 text-sm text-white/60">
             Loading WASM cryptography module...
           </div>
         )}
         {wasmError && (
-          <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
             WASM failed to load: {wasmError}
           </div>
         )}
@@ -478,33 +471,33 @@ function SecretShareInner() {
         {/*  CREATE TAB                                                   */}
         {/* ============================================================ */}
         {tab === "create" && (
-          <div className="mt-6 flex flex-col gap-5">
+          <div className="mt-4 flex flex-col gap-6">
             {phase === "idle" && (
               <>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-white/40">
-                    Your Secret
-                  </label>
-                  <div className="liquid-segmented mb-3 flex gap-1 rounded-full p-1">
-                    <button
-                      onClick={() => setInputMode("text")}
-                      className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${
-                        inputMode === "text" ? "liquid-panel-soft text-white" : "text-white/40"
-                      }`}
-                    >
-                      Text
-                    </button>
-                    <button
-                      onClick={() => setInputMode("file")}
-                      className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${
-                        inputMode === "file" ? "liquid-panel-soft text-white" : "text-white/40"
-                      }`}
-                    >
-                      File
-                    </button>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="text-xs font-medium text-white/50">Your secret</label>
+                    <div className="liquid-segmented flex gap-0.5 rounded-full p-0.5">
+                      <button
+                        onClick={() => setInputMode("text")}
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors ${
+                          inputMode === "text" ? "liquid-panel-soft text-white" : "text-white/40"
+                        }`}
+                      >
+                        Text
+                      </button>
+                      <button
+                        onClick={() => setInputMode("file")}
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors ${
+                          inputMode === "file" ? "liquid-panel-soft text-white" : "text-white/40"
+                        }`}
+                      >
+                        File
+                      </button>
+                    </div>
                   </div>
                   {inputMode === "file" ? (
-                    <div className="rounded-lg border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
+                    <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
                       {selectedFile ? (
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-white/70">{selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
@@ -528,12 +521,11 @@ function SecretShareInner() {
                   )}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-white/40">
-                    Share With (optional)
+                  <label className="mb-1 block text-xs font-medium text-white/50">
+                    Share with (optional)
                   </label>
-                  <p className="mb-2 text-[11px] text-white/40">
-                    Up to 3 emails or wallet addresses. Email recipients can
-                    decrypt after logging in with that email via Privy.
+                  <p className="mb-2 text-[11px] text-white/30">
+                    Up to 3 emails or wallet addresses; email recipients decrypt after logging in via Privy.
                   </p>
                   <div className="flex flex-col gap-1.5">
                     {recipients.map((value, idx) => {
@@ -544,22 +536,28 @@ function SecretShareInner() {
                         value.trim().length > 0 && c.kind !== "invalid";
                       return (
                         <div key={idx}>
-                          <input
-                            value={value}
-                            onChange={(e) => {
-                              const next = [...recipients];
-                              next[idx] = e.target.value;
-                              setRecipients(next);
-                            }}
-                            placeholder="email@example.com or 0x…"
-                            className={`w-full rounded-lg border-[0.5px] bg-white/[0.02] px-4 py-2 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20 ${
-                              showError
-                                ? "border-red-500/40"
-                                : showOk
-                                ? "border-green-500/30"
-                                : "border-white/[0.06]"
-                            }`}
-                          />
+                          <div className="relative">
+                            <input
+                              value={value}
+                              onChange={(e) => {
+                                const next = [...recipients];
+                                next[idx] = e.target.value;
+                                setRecipients(next);
+                              }}
+                              placeholder="email@example.com or 0x…"
+                              className="w-full rounded-2xl border-[0.5px] border-white/[0.06] bg-white/[0.02] px-4 py-2 pr-8 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/20"
+                            />
+                            {showOk && (
+                              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-green-400/70">
+                                ✓
+                              </span>
+                            )}
+                            {showError && (
+                              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-red-400/70">
+                                ✕
+                              </span>
+                            )}
+                          </div>
                           {showError && (
                             <p className="mt-0.5 text-[10px] text-red-400/70">
                               Not a valid email or wallet address
@@ -590,7 +588,7 @@ function SecretShareInner() {
                 />
                 {phase === "error" && (
                   <>
-                    <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+                    <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
                       {errorMsg}
                     </div>
                     <button
@@ -612,10 +610,10 @@ function SecretShareInner() {
                   accentClass="bg-demo-secret"
                 />
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-white/40">
-                    Shareable Link
+                  <label className="mb-2 block text-xs font-medium text-white/50">
+                    Shareable link
                   </label>
-                  <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3">
+                  <div className="flex items-center gap-2 rounded-2xl border border-green-500/20 bg-green-500/5 px-4 py-3">
                     <span className="min-w-0 flex-1 truncate font-mono text-sm text-green-300">
                       {shareLink}
                     </span>
@@ -629,7 +627,7 @@ function SecretShareInner() {
                 </div>
                 <button
                   onClick={resetAllInputs}
-                  className="rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                  className="rounded-2xl bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
                 >
                   Create Another
                 </button>
@@ -642,12 +640,12 @@ function SecretShareInner() {
         {/*  REVEAL TAB                                                   */}
         {/* ============================================================ */}
         {tab === "reveal" && (
-          <div className="mt-6 flex flex-col gap-5">
+          <div className="mt-4 flex flex-col gap-6">
             {phase === "idle" && (
               <>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-white/40">
-                    Secret Link or ID
+                  <label className="mb-2 block text-xs font-medium text-white/50">
+                    Secret link or ID
                   </label>
                   <input
                     value={revealInput}
@@ -676,7 +674,7 @@ function SecretShareInner() {
                 />
                 {phase === "error" && (
                   <>
-                    <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+                    <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
                       {errorMsg}
                     </div>
                     <button
@@ -698,14 +696,14 @@ function SecretShareInner() {
                   accentClass="bg-demo-secret"
                 />
                 {revealedFile ? (
-                  <div className="rounded-lg border border-green-500/15 bg-green-500/5 p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-green-400/60">
-                      Revealed File
+                  <div className="rounded-2xl border border-green-500/15 bg-green-500/5 p-4">
+                    <p className="text-xs font-medium text-green-400/70">
+                      Revealed file
                     </p>
                     {/* Vault content (decrypted payload) */}
                     <div className="mt-3">
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">
-                        Vault Content
+                      <p className="text-[11px] font-medium text-white/50">
+                        Vault content
                       </p>
                       <pre className="mt-1 overflow-x-auto rounded-md bg-black/30 px-3 py-2 font-mono text-xs leading-relaxed text-green-300/80">
                         {JSON.stringify(revealedFile, null, 2)}
@@ -713,8 +711,8 @@ function SecretShareInner() {
                     </div>
                     {/* IPFS link */}
                     <div className="mt-3">
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">
-                        IPFS Source
+                      <p className="text-[11px] font-medium text-white/50">
+                        IPFS source
                       </p>
                       <a
                         href={`https://w3s.link/ipfs/${revealedFile.cid}`}
@@ -738,10 +736,10 @@ function SecretShareInner() {
                   </div>
                 ) : revealedText ? (
                   <div>
-                    <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-white/40">
-                      Revealed Secret
+                    <label className="mb-2 block text-xs font-medium text-white/50">
+                      Revealed secret
                     </label>
-                    <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3">
+                    <div className="rounded-2xl border border-green-500/20 bg-green-500/5 px-4 py-3">
                       <p className="break-all font-mono text-sm text-green-300">
                         {revealedText}
                       </p>
@@ -753,7 +751,7 @@ function SecretShareInner() {
                     reset();
                     setRevealedText("");
                   }}
-                  className="rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                  className="rounded-2xl bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/15"
                 >
                   Reveal Another
                 </button>
@@ -893,7 +891,7 @@ const secret = await tdh2Combine({
 
 export default function SecretSharePage() {
   return (
-    <AppWindow>
+    <div className="px-6">
       <Suspense
         fallback={
           <div className="flex flex-1 items-center justify-center">
@@ -903,6 +901,6 @@ export default function SecretSharePage() {
       >
         <SecretShareInner />
       </Suspense>
-    </AppWindow>
+    </div>
   );
 }

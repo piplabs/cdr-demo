@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { AppWindow } from "@/components/desktop/app-window";
-import { CDRDiamondIcon, LockIcon, ShopIcon } from "@/components/desktop/dock-icons";
+import { LockIcon, ShopIcon } from "@/components/desktop/dock-icons";
 
 const appCards = [
   {
@@ -35,8 +34,8 @@ export default function HomePage() {
   const router = useRouter();
 
   return (
-    <AppWindow>
-      <div className="mx-auto max-w-[900px] pb-24 pt-14">
+    <div className="mx-auto max-w-[900px] px-6">
+      <div className="pb-8 pt-2">
         {/* Hero */}
         <div className="mb-14 text-center">
           <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.34em] text-white/38">
@@ -90,6 +89,6 @@ export default function HomePage() {
           ))}
         </div>
       </div>
-    </AppWindow>
+    </div>
   );
 }
