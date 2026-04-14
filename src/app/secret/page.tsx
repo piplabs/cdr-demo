@@ -17,12 +17,14 @@ import { useWasm } from "@/providers/wasm-provider";
 import { ProgressBar } from "@/components/progress-bar";
 import { HowItWorks } from "@/components/how-it-works";
 import { collectPartialsWithProgress } from "@/lib/collect-partials";
+import { DeadManSwitchTab } from "./_components/dead-man-switch-tab";
+import { DeadManSwitchReveal } from "./_components/dead-man-switch-reveal";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-type Tab = "create" | "reveal";
+type Tab = "create" | "reveal" | "deadman";
 type Phase = "idle" | "working" | "done" | "error";
 
 /* ------------------------------------------------------------------ */
@@ -58,6 +60,8 @@ function SecretShareInner() {
   const [revealInput, setRevealInput] = useState(prefilledId);
   const [revealedText, setRevealedText] = useState("");
   const [revealedFile, setRevealedFile] = useState<{ cid: string; key: string; fileName: string; fileSize: number } | null>(null);
+  const [vaultType, setVaultType] = useState<"unknown" | "whitelist" | "deadman">("unknown");
+  const [dmsUnlockedConfirmed, setDmsUnlockedConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimeout = useRef<ReturnType<typeof setTimeout>>();
 
@@ -85,6 +89,8 @@ function SecretShareInner() {
     setErrorMsg("");
     setSelectedFile(null);
     setRevealedFile(null);
+    setVaultType("unknown");
+    setDmsUnlockedConfirmed(false);
   }
 
   function resetAllInputs() {
@@ -102,6 +108,19 @@ function SecretShareInner() {
     const num = Number(trimmed);
     if (!Number.isFinite(num) || num < 0) throw new Error("Invalid secret ID");
     return num;
+  }
+
+  async function detectVaultType(uuid: number): Promise<"whitelist" | "deadman" | "unknown"> {
+    const vault = await (publicClient as any).readContract({
+      address: contractAddresses.testnet.cdr,
+      abi: cdrAbi,
+      functionName: "vaults",
+      args: [uuid],
+    });
+    const readAddr = String((vault as any).readConditionAddr).toLowerCase();
+    if (readAddr === CONTRACTS.DEADMAN_SWITCH_CONDITION.toLowerCase()) return "deadman";
+    if (readAddr === CONTRACTS.WHITELIST_CONDITION.toLowerCase()) return "whitelist";
+    return "unknown";
   }
 
   async function copyToClipboard(text: string) {
@@ -449,6 +468,7 @@ function SecretShareInner() {
           {([
             { key: "create", label: "Create" },
             { key: "reveal", label: "Reveal" },
+            { key: "deadman", label: "Dead Man's Switch" },
           ] as const).map((t) => (
             <button
               key={t.key}
@@ -670,11 +690,35 @@ function SecretShareInner() {
                 </div>
                 <button
                   disabled={!canReveal}
-                  onClick={handleReveal}
+                  onClick={async () => {
+                    try {
+                      const uuid = parseVaultId(revealInput);
+                      const kind = await detectVaultType(uuid);
+                      setVaultType(kind);
+                      if (kind === "deadman") {
+                        // Branch: DMS reveal shows countdown/extend first.
+                        // handleReveal is only invoked after the user confirms unlocked.
+                        return;
+                      }
+                      await handleReveal();
+                    } catch (err: unknown) {
+                      setErrorMsg(err instanceof Error ? err.message : String(err));
+                      setPhase("error");
+                    }
+                  }}
                   className="liquid-button liquid-button-indigo rounded-2xl px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Reveal
                 </button>
+                {vaultType === "deadman" && !dmsUnlockedConfirmed && (
+                  <DeadManSwitchReveal
+                    uuid={parseVaultId(revealInput)}
+                    onUnlocked={() => {
+                      setDmsUnlockedConfirmed(true);
+                      handleReveal();
+                    }}
+                  />
+                )}
                 <p className="text-center text-xs text-white/40">
                   Reading a vault costs 0.03 IP (paid to validators for decryption).
                 </p>
@@ -775,6 +819,13 @@ function SecretShareInner() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ============================================================ */}
+        {/*  DEAD MAN'S SWITCH TAB                                        */}
+        {/* ============================================================ */}
+        {tab === "deadman" && (
+          <DeadManSwitchTab wasmReady={wasmReady} connected={connected} />
         )}
 
         {/* ============================================================ */}

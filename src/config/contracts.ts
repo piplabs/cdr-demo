@@ -19,6 +19,8 @@ export const CONTRACTS = {
   CONFIDENTIAL_INFERENCE: (process.env.NEXT_PUBLIC_CONFIDENTIAL_INFERENCE ?? "") as `0x${string}`,
   // WhitelistCondition — set after deployment via env var
   WHITELIST_CONDITION: (process.env.NEXT_PUBLIC_WHITELIST_CONDITION ?? "") as `0x${string}`,
+  // DeadManSwitchCondition — set after deployment via env var
+  DEADMAN_SWITCH_CONDITION: (process.env.NEXT_PUBLIC_DEADMAN_SWITCH_CONDITION ?? "") as `0x${string}`,
 } as const;
 
 // ============================================================
@@ -431,6 +433,79 @@ export const depinAbi = [
       { name: "provider", type: "address", indexed: true },
       { name: "amount", type: "uint256", indexed: false },
     ],
+  },
+] as const;
+
+/** DeadManSwitchCondition ABI (minimal — only the functions the frontend calls) */
+export const deadManSwitchConditionAbi = [
+  {
+    type: "function",
+    name: "register",
+    inputs: [
+      { name: "uuid", type: "uint32" },
+      { name: "durationBlocks", type: "uint256" },
+      { name: "recipients", type: "address[]" },
+      { name: "creatorCanRead", type: "bool" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "extend",
+    inputs: [{ name: "uuid", type: "uint32" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getVaultInfo",
+    inputs: [{ name: "uuid", type: "uint32" }],
+    outputs: [
+      { name: "creator", type: "address" },
+      { name: "unlockBlock", type: "uint256" },
+      { name: "duration", type: "uint256" },
+      { name: "creatorCanReadWhileLocked", type: "bool" },
+      { name: "registered", type: "bool" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getRemainingBlocks",
+    inputs: [{ name: "uuid", type: "uint32" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isWhitelisted",
+    inputs: [
+      { name: "uuid", type: "uint32" },
+      { name: "account", type: "address" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "error",
+    name: "AlreadyRegistered",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotRegistered",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotCreator",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZeroDuration",
+    inputs: [],
   },
 ] as const;
 
