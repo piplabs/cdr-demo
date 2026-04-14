@@ -325,6 +325,14 @@ export function DeadManSwitchTab(props: {
     <div className="mt-4 flex flex-col gap-6">
       {phase === "idle" && (
         <>
+          <picture>
+            <source srcSet="/xkcd-klout-light.png" media="(prefers-color-scheme: light)" />
+            <img
+              src="/xkcd-klout-dark.png"
+              alt="xkcd: Klout"
+              className="mx-auto block w-full max-w-[220px] rounded-lg opacity-60"
+            />
+          </picture>
           <div>
             <div className="mb-2 flex items-center justify-between">
               <label className="text-xs font-medium text-white/50">Vault contents</label>

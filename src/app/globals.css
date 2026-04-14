@@ -321,7 +321,9 @@ body {
 [class~="bg-yellow-500/5"],
 [class~="bg-yellow-500/10"] { background-color: var(--warning-surface) !important; }
 [class~="border-yellow-500/20"] { border-color: var(--warning-border) !important; }
-[class~="text-yellow-400"] { color: var(--warning-text) !important; }
+[class~="text-yellow-400"],
+[class~="text-amber-300"],
+[class~="text-amber-400"] { color: var(--warning-text) !important; }
 
 [class~="bg-green-500/5"],
 [class~="bg-green-500/10"],

@@ -147,28 +147,57 @@ export function DeadManSwitchReveal(props: {
           </p>
         )}
         <p className="mt-1 text-[11px] text-white/30">
-          Creator: {state.creator.slice(0, 6)}…{state.creator.slice(-4)}
+          Creator:{" "}
+          {isCreator ? (
+            <span className="rounded-full border border-white/15 bg-white/[0.06] px-1.5 py-[1px] text-[10px] font-medium uppercase tracking-wide text-white/70">
+              owner
+            </span>
+          ) : (
+            <>
+              {state.creator.slice(0, 6)}…{state.creator.slice(-4)}
+            </>
+          )}
           {" · "}Duration: {formatBlocksAsDuration(state.duration)}
           {" · "}Creator-visible while locked: {state.creatorCanRead ? "yes" : "no"}
         </p>
       </div>
 
-      {isCreator && !isUnlocked && (
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={handleExtend}
-            disabled={extending}
-            className="liquid-button liquid-button-indigo rounded-2xl px-4 py-2.5 text-sm font-medium disabled:opacity-40"
-          >
-            {extending ? "Extending..." : `Extend (+${formatBlocksAsDuration(state.duration)})`}
-          </button>
-          {extendError && (
-            <p className="text-xs text-red-400/80">{extendError}</p>
-          )}
-        </div>
-      )}
-
-      {canDecrypt ? (
+      {isCreator ? (
+        ((!isUnlocked) || canDecrypt) && (
+          <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.02] p-3">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-white/40">
+              Owner actions
+            </p>
+            {!isUnlocked && (
+              <>
+                <button
+                  onClick={handleExtend}
+                  disabled={extending}
+                  className="liquid-button liquid-button-indigo rounded-2xl px-4 py-2.5 text-sm font-medium disabled:opacity-40"
+                >
+                  {extending ? "Extending..." : `Extend (+${formatBlocksAsDuration(state.duration)})`}
+                </button>
+                {extendError && (
+                  <p className="text-xs text-red-400/80">{extendError}</p>
+                )}
+              </>
+            )}
+            {canDecrypt && (
+              <button
+                onClick={onUnlocked}
+                className="liquid-button rounded-2xl px-4 py-2.5 text-sm font-medium"
+              >
+                Reveal Contents
+              </button>
+            )}
+            {!canDecrypt && !isUnlocked && !state.creatorCanRead && (
+              <p className="text-xs text-white/40">
+                You chose not to read this vault while locked. Reveal unlocks when the timer expires.
+              </p>
+            )}
+          </div>
+        )
+      ) : canDecrypt ? (
         <button
           onClick={onUnlocked}
           className="liquid-button rounded-2xl px-4 py-2.5 text-sm font-medium"
