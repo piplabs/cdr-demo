@@ -71,4 +71,11 @@ contract DeadManSwitchCondition {
         if (caller == v.creator && v.creatorCanReadWhileLocked) return true;
         return block.number >= v.unlockBlock;
     }
+
+    function extend(uint32 uuid) external {
+        VaultInfo storage v = _vaults[uuid];
+        if (!v.registered) revert NotRegistered();
+        if (v.creator != msg.sender) revert NotCreator();
+        v.unlockBlock = block.number + v.duration;
+    }
 }

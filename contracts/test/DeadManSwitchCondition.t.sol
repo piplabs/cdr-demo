@@ -93,4 +93,33 @@ contract DeadManSwitchConditionTest is Test {
     function test_checkRead_unregisteredReturnsFalse() public {
         assertFalse(dms.checkReadCondition(999, "", "", alice));
     }
+
+    function test_extend_resetsUnlockBlockFromCurrentBlock() public {
+        _setupVault(10, 100, true);
+        vm.roll(1050); // halfway through
+        dms.extend(10);
+        (, uint256 unlockBlock,,,) = dms.getVaultInfo(10);
+        assertEq(unlockBlock, 1150, "reset to current block + duration");
+    }
+
+    function test_extend_worksAfterExpiry_reLocks() public {
+        _setupVault(10, 100, true);
+        vm.roll(2000); // long after expiry
+        dms.extend(10);
+        (, uint256 unlockBlock,,,) = dms.getVaultInfo(10);
+        assertEq(unlockBlock, 2100, "re-locked");
+        assertFalse(dms.checkReadCondition(10, "", "", alice), "alice re-locked out");
+    }
+
+    function test_extend_revertsForNonCreator() public {
+        _setupVault(10, 100, true);
+        vm.prank(alice);
+        vm.expectRevert(DeadManSwitchCondition.NotCreator.selector);
+        dms.extend(10);
+    }
+
+    function test_extend_revertsForUnregistered() public {
+        vm.expectRevert(DeadManSwitchCondition.NotRegistered.selector);
+        dms.extend(999);
+    }
 }
