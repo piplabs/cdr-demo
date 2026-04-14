@@ -49,4 +49,48 @@ contract DeadManSwitchConditionTest is Test {
         vm.expectRevert(DeadManSwitchCondition.AlreadyRegistered.selector);
         dms.register(7, 10, recipients, true);
     }
+
+    function _setupVault(uint32 uuid, uint256 duration, bool creatorCanRead) internal {
+        address[] memory recipients = new address[](1);
+        recipients[0] = alice;
+        vm.roll(1000);
+        dms.register(uuid, duration, recipients, creatorCanRead);
+    }
+
+    function test_checkRead_lockedForRecipient() public {
+        _setupVault(10, 100, true);
+        assertFalse(dms.checkReadCondition(10, "", "", alice), "alice locked out");
+    }
+
+    function test_checkRead_unlockedForWhitelistedRecipient() public {
+        _setupVault(10, 100, true);
+        vm.roll(1100);
+        assertTrue(dms.checkReadCondition(10, "", "", alice), "alice unlocked");
+    }
+
+    function test_checkRead_notWhitelistedEvenAfterUnlock() public {
+        _setupVault(10, 100, true);
+        vm.roll(2000);
+        assertFalse(dms.checkReadCondition(10, "", "", bob), "bob never whitelisted");
+    }
+
+    function test_checkRead_creatorCanReadWhileLocked_true() public {
+        _setupVault(10, 100, true);
+        assertTrue(dms.checkReadCondition(10, "", "", address(this)), "creator bypasses lock");
+    }
+
+    function test_checkRead_creatorCannotReadWhileLocked_false() public {
+        _setupVault(10, 100, false);
+        assertFalse(dms.checkReadCondition(10, "", "", address(this)), "creator locked out");
+    }
+
+    function test_checkRead_creatorUnlocksWithEveryoneElse() public {
+        _setupVault(10, 100, false);
+        vm.roll(1100);
+        assertTrue(dms.checkReadCondition(10, "", "", address(this)), "creator unlocks after timer");
+    }
+
+    function test_checkRead_unregisteredReturnsFalse() public {
+        assertFalse(dms.checkReadCondition(999, "", "", alice));
+    }
 }

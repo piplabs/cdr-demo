@@ -58,4 +58,17 @@ contract DeadManSwitchCondition {
         VaultInfo storage v = _vaults[uuid];
         return (v.creator, v.unlockBlock, v.duration, v.creatorCanReadWhileLocked, v.registered);
     }
+
+    function checkReadCondition(
+        uint32 uuid,
+        bytes calldata,
+        bytes calldata,
+        address caller
+    ) external view returns (bool) {
+        VaultInfo storage v = _vaults[uuid];
+        if (!v.registered) return false;
+        if (!isWhitelisted[uuid][caller]) return false;
+        if (caller == v.creator && v.creatorCanReadWhileLocked) return true;
+        return block.number >= v.unlockBlock;
+    }
 }
