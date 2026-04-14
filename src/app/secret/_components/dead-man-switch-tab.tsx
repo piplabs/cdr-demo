@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createWalletClient, custom, toHex } from "viem";
 import { CONTRACTS, deadManSwitchConditionAbi } from "@/config/contracts";
 import { classifyRecipient, dedupeAddresses, type ClassifiedRecipient } from "@/lib/recipients";
@@ -10,7 +10,7 @@ import { useCDRClient } from "@/hooks/use-cdr-client";
 import { cdrDevnet } from "@/config/chain";
 import { ProgressBar } from "@/components/progress-bar";
 import { DurationPicker } from "./duration-picker";
-import { secondsToBlocks } from "@/lib/block-time";
+import { secondsToBlocks, formatBlocksAsDuration } from "@/lib/block-time";
 
 type Phase = "idle" | "working" | "done" | "error";
 
@@ -35,6 +35,105 @@ export function DeadManSwitchTab(props: {
   const [shareLink, setShareLink] = useState("");
   const [copied, setCopied] = useState(false);
   const copyTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  type MyVault = {
+    uuid: number;
+    unlockBlock: bigint;
+    duration: bigint;
+    creatorCanRead: boolean;
+    currentBlock: bigint;
+  };
+  const [myVaults, setMyVaults] = useState<MyVault[]>([]);
+  const [vaultsLoading, setVaultsLoading] = useState(false);
+  const [extendingUuid, setExtendingUuid] = useState<number | null>(null);
+
+  async function loadMyVaults() {
+    if (!address) {
+      setMyVaults([]);
+      return;
+    }
+    setVaultsLoading(true);
+    try {
+      // Scan recent blocks for register() calls. We use the function selector
+      // pattern — viem can't filter by internal function call directly, so we
+      // query logs by the Transfer-like absence and rely on the contract's
+      // view function per UUID. Simpler: walk event logs if we emit them.
+      // Since `register()` doesn't emit events, fall back to reading the
+      // user's own transaction history via getLogs on a placeholder event
+      // is not possible — instead, we persist UUIDs locally in this session
+      // after creation and fetch their state. For a full implementation,
+      // add an event to the contract and index it here.
+      //
+      // This session-local approach lists vaults created during the current
+      // page session. A production version would add `event VaultRegistered`
+      // to the contract and index it via `getLogs`.
+      const currentBlock = await publicClient.getBlockNumber();
+      const stored = JSON.parse(
+        localStorage.getItem(`dms-vaults-${address.toLowerCase()}`) || "[]",
+      ) as number[];
+      const vaults: MyVault[] = [];
+      for (const uuid of stored) {
+        try {
+          const info = (await publicClient.readContract({
+            address: CONTRACTS.DEADMAN_SWITCH_CONDITION,
+            abi: deadManSwitchConditionAbi,
+            functionName: "getVaultInfo",
+            args: [uuid],
+          })) as readonly [`0x${string}`, bigint, bigint, boolean, boolean];
+          const [creator, unlockBlock, duration, creatorCanRead, registered] = info;
+          if (!registered) continue;
+          if (creator.toLowerCase() !== address.toLowerCase()) continue;
+          vaults.push({ uuid, unlockBlock, duration, creatorCanRead, currentBlock });
+        } catch {
+          // skip on error
+        }
+      }
+      setMyVaults(vaults);
+    } finally {
+      setVaultsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadMyVaults();
+    const t = setInterval(loadMyVaults, 5_000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address]);
+
+  function recordCreatedUuid(uuid: number) {
+    if (!address) return;
+    const key = `dms-vaults-${address.toLowerCase()}`;
+    const stored = JSON.parse(localStorage.getItem(key) || "[]") as number[];
+    if (!stored.includes(uuid)) {
+      stored.push(uuid);
+      localStorage.setItem(key, JSON.stringify(stored));
+    }
+  }
+
+  async function extendVault(uuid: number) {
+    setExtendingUuid(uuid);
+    try {
+      const wallet = wallets[0];
+      if (!wallet) throw new Error("No wallet connected");
+      const provider = await wallet.getEthereumProvider();
+      const walletClient = createWalletClient({
+        chain: cdrDevnet,
+        transport: custom(provider),
+        account: wallet.address as `0x${string}`,
+      });
+      const hash = await walletClient.writeContract({
+        address: CONTRACTS.DEADMAN_SWITCH_CONDITION,
+        abi: deadManSwitchConditionAbi,
+        functionName: "extend",
+        args: [uuid],
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      await loadMyVaults();
+    } finally {
+      setExtendingUuid(null);
+    }
+  }
 
   const classified: ClassifiedRecipient[] = recipients.map(classifyRecipient);
   const hasInvalidRecipient = classified.some(
@@ -201,6 +300,8 @@ export function DeadManSwitchTab(props: {
       setProgress(100);
       setProgressLabel("Done!");
       const link = `${window.location.origin}/secret/${uuid}`;
+      recordCreatedUuid(uuid);
+      await loadMyVaults();
       setShareLink(link);
       setPhase("done");
     } catch (err: unknown) {
@@ -388,6 +489,48 @@ export function DeadManSwitchTab(props: {
           </button>
         </div>
       )}
+      <div className="mt-8 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white/70">My Vaults</h3>
+          {vaultsLoading && <span className="text-[11px] text-white/30">Refreshing…</span>}
+        </div>
+        {myVaults.length === 0 ? (
+          <p className="text-xs text-white/40">
+            Vaults you create in this browser session will appear here.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {myVaults.map((v) => {
+              const remaining =
+                v.currentBlock >= v.unlockBlock ? 0n : v.unlockBlock - v.currentBlock;
+              const unlocked = remaining === 0n;
+              return (
+                <li
+                  key={v.uuid}
+                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-2.5"
+                >
+                  <div>
+                    <p className="font-mono text-xs text-white/70">UUID {v.uuid}</p>
+                    <p className="text-[11px] text-white/40">
+                      {unlocked
+                        ? "Unlocked (recipients can decrypt)"
+                        : `~${formatBlocksAsDuration(remaining)} remaining`}
+                      {" · "}Duration {formatBlocksAsDuration(v.duration)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => extendVault(v.uuid)}
+                    disabled={extendingUuid === v.uuid}
+                    className="liquid-button shrink-0 rounded-full px-3 py-1 text-xs font-medium disabled:opacity-40"
+                  >
+                    {extendingUuid === v.uuid ? "Extending…" : "Extend"}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
