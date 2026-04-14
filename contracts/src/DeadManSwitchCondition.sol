@@ -78,4 +78,18 @@ contract DeadManSwitchCondition {
         if (v.creator != msg.sender) revert NotCreator();
         v.unlockBlock = block.number + v.duration;
     }
+
+    function addToWhitelist(uint32 uuid, address account) external {
+        VaultInfo storage v = _vaults[uuid];
+        if (!v.registered) revert NotRegistered();
+        if (v.creator != msg.sender) revert NotCreator();
+        isWhitelisted[uuid][account] = true;
+    }
+
+    function removeFromWhitelist(uint32 uuid, address account) external {
+        VaultInfo storage v = _vaults[uuid];
+        if (!v.registered) revert NotRegistered();
+        if (v.creator != msg.sender) revert NotCreator();
+        isWhitelisted[uuid][account] = false;
+    }
 }

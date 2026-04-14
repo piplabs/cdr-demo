@@ -122,4 +122,37 @@ contract DeadManSwitchConditionTest is Test {
         vm.expectRevert(DeadManSwitchCondition.NotRegistered.selector);
         dms.extend(999);
     }
+
+    function test_addToWhitelist_byCreator_succeeds() public {
+        _setupVault(10, 100, true);
+        dms.addToWhitelist(10, carol);
+        assertTrue(dms.isWhitelisted(10, carol));
+    }
+
+    function test_addToWhitelist_byNonCreator_reverts() public {
+        _setupVault(10, 100, true);
+        vm.prank(alice);
+        vm.expectRevert(DeadManSwitchCondition.NotCreator.selector);
+        dms.addToWhitelist(10, carol);
+    }
+
+    function test_removeFromWhitelist_byCreator_succeeds() public {
+        _setupVault(10, 100, true);
+        dms.removeFromWhitelist(10, alice);
+        assertFalse(dms.isWhitelisted(10, alice));
+    }
+
+    function test_removeFromWhitelist_deniesAccessAfterUnlock() public {
+        _setupVault(10, 100, true);
+        dms.removeFromWhitelist(10, alice);
+        vm.roll(2000);
+        assertFalse(dms.checkReadCondition(10, "", "", alice), "alice denied post-unlock");
+    }
+
+    function test_removeFromWhitelist_byNonCreator_reverts() public {
+        _setupVault(10, 100, true);
+        vm.prank(alice);
+        vm.expectRevert(DeadManSwitchCondition.NotCreator.selector);
+        dms.removeFromWhitelist(10, alice);
+    }
 }
