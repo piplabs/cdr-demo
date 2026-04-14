@@ -155,4 +155,26 @@ contract DeadManSwitchConditionTest is Test {
         vm.expectRevert(DeadManSwitchCondition.NotCreator.selector);
         dms.removeFromWhitelist(10, alice);
     }
+
+    function test_checkWrite_onlyCreatorTrue() public {
+        _setupVault(10, 100, true);
+        assertTrue(dms.checkWriteCondition(10, "", "", address(this)), "creator can write");
+        assertFalse(dms.checkWriteCondition(10, "", "", alice), "alice cannot write");
+    }
+
+    function test_getRemainingBlocks_beforeExpiry() public {
+        _setupVault(10, 100, true);
+        vm.roll(1030);
+        assertEq(dms.getRemainingBlocks(10), 70, "70 blocks left");
+    }
+
+    function test_getRemainingBlocks_afterExpiryReturnsZero() public {
+        _setupVault(10, 100, true);
+        vm.roll(2000);
+        assertEq(dms.getRemainingBlocks(10), 0, "zero after expiry");
+    }
+
+    function test_getRemainingBlocks_unregisteredReturnsZero() public {
+        assertEq(dms.getRemainingBlocks(999), 0);
+    }
 }

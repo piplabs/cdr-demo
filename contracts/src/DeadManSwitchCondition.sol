@@ -92,4 +92,22 @@ contract DeadManSwitchCondition {
         if (v.creator != msg.sender) revert NotCreator();
         isWhitelisted[uuid][account] = false;
     }
+
+    function checkWriteCondition(
+        uint32 uuid,
+        bytes calldata,
+        bytes calldata,
+        address caller
+    ) external view returns (bool) {
+        VaultInfo storage v = _vaults[uuid];
+        if (!v.registered) return false;
+        return caller == v.creator;
+    }
+
+    function getRemainingBlocks(uint32 uuid) external view returns (uint256) {
+        VaultInfo storage v = _vaults[uuid];
+        if (!v.registered) return 0;
+        if (block.number >= v.unlockBlock) return 0;
+        return v.unlockBlock - block.number;
+    }
 }
