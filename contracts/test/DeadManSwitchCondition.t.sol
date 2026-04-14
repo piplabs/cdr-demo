@@ -35,4 +35,18 @@ contract DeadManSwitchConditionTest is Test {
         assertTrue(dms.isWhitelisted(42, bob), "bob whitelisted");
         assertFalse(dms.isWhitelisted(42, carol), "carol not whitelisted");
     }
+
+    function test_register_revertsOnZeroDuration() public {
+        address[] memory recipients = new address[](0);
+        vm.expectRevert(DeadManSwitchCondition.ZeroDuration.selector);
+        dms.register(1, 0, recipients, true);
+    }
+
+    function test_register_revertsWhenAlreadyRegistered() public {
+        address[] memory recipients = new address[](0);
+        dms.register(7, 10, recipients, true);
+
+        vm.expectRevert(DeadManSwitchCondition.AlreadyRegistered.selector);
+        dms.register(7, 10, recipients, true);
+    }
 }
