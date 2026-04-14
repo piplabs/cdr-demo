@@ -60,6 +60,8 @@ function SecretShareInner() {
   const [revealInput, setRevealInput] = useState(prefilledId);
   const [revealedText, setRevealedText] = useState("");
   const [revealedFile, setRevealedFile] = useState<{ cid: string; key: string; fileName: string; fileSize: number } | null>(null);
+  const [downloadError, setDownloadError] = useState("");
+  const [downloading, setDownloading] = useState(false);
   const [vaultType, setVaultType] = useState<"unknown" | "whitelist" | "deadman">("unknown");
   const [dmsUnlockedConfirmed, setDmsUnlockedConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -132,19 +134,32 @@ function SecretShareInner() {
 
   async function downloadRevealedFile() {
     if (!revealedFile) return;
-    const response = await fetch(`/api/storage/download?cid=${revealedFile.cid}`);
-    if (!response.ok) throw new Error("Download failed");
-    const encryptedBytes = new Uint8Array(await response.arrayBuffer());
-    const key = fromHex(revealedFile.key as `0x${string}`, "bytes");
-    const decrypted = decryptFile({ ciphertext: encryptedBytes, key });
+    setDownloadError("");
+    setDownloading(true);
+    try {
+      if (!revealedFile.key) {
+        throw new Error(
+          "This vault was created before the key-storage fix and cannot be decrypted. Please create a new vault.",
+        );
+      }
+      const response = await fetch(`/api/storage/download?cid=${revealedFile.cid}`);
+      if (!response.ok) throw new Error(`Download failed (${response.status})`);
+      const encryptedBytes = new Uint8Array(await response.arrayBuffer());
+      const key = fromHex(revealedFile.key as `0x${string}`, "bytes");
+      const decrypted = decryptFile({ ciphertext: encryptedBytes, key });
 
-    const blob = new Blob([decrypted as unknown as BlobPart]);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = revealedFile.fileName;
-    a.click();
-    URL.revokeObjectURL(url);
+      const blob = new Blob([decrypted as unknown as BlobPart]);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = revealedFile.fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      setDownloadError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDownloading(false);
+    }
   }
 
   /* ---------------------------------------------------------------- */
@@ -221,7 +236,13 @@ function SecretShareInner() {
           const err = await uploadRes.json();
           throw new Error(err.error || "File upload failed");
         }
-        filePayload = await uploadRes.json();
+        const uploadJson = await uploadRes.json();
+        filePayload = {
+          cid: uploadJson.cid,
+          key: uploadJson.encryptionKey,
+          fileName: uploadJson.fileName,
+          fileSize: uploadJson.fileSize,
+        };
         setProgress(30);
       }
 
@@ -349,6 +370,24 @@ function SecretShareInner() {
       const encryptedData = toBytes((vault as any).encryptedData);
       const label = uuidToLabel(uuid);
 
+      // Pre-flight: simulate the read to surface condition-check reverts
+      // immediately instead of hanging on partial collection after a silent
+      // on-chain revert.
+      setProgress(20);
+      const readFee = (await publicClient.readContract({
+        address: contractAddresses.testnet.cdr,
+        abi: cdrAbi,
+        functionName: "readFee",
+      })) as bigint;
+      await publicClient.simulateContract({
+        address: contractAddresses.testnet.cdr,
+        abi: cdrAbi,
+        functionName: "read",
+        args: [uuid, "0x", toHex(pubKey)],
+        value: readFee,
+        account: address as `0x${string}`,
+      });
+
       // Submit read
       setProgress(25);
       const fromBlock = await publicClient.getBlockNumber();
@@ -356,6 +395,7 @@ function SecretShareInner() {
         uuid,
         accessAuxData: "0x",
         requesterPubKey: toHex(pubKey),
+        feeOverride: readFee,
       });
 
       // Step 2: Collect partials
@@ -789,11 +829,17 @@ function SecretShareInner() {
                       <span className="text-sm text-green-300">{revealedFile.fileName} ({(revealedFile.fileSize / 1024 / 1024).toFixed(2)} MB)</span>
                       <button
                         onClick={downloadRevealedFile}
-                        className="rounded-md bg-green-500/15 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/25"
+                        disabled={downloading}
+                        className="rounded-md bg-green-500/15 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/25 disabled:opacity-60"
                       >
-                        Download &amp; Decrypt
+                        {downloading ? "Decrypting..." : "Download & Decrypt"}
                       </button>
                     </div>
+                    {downloadError && (
+                      <div className="mt-3 rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-400">
+                        {downloadError}
+                      </div>
+                    )}
                   </div>
                 ) : revealedText ? (
                   <div>

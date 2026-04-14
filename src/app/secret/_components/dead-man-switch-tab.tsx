@@ -232,7 +232,13 @@ export function DeadManSwitchTab(props: {
           const err = await uploadRes.json();
           throw new Error(err.error || "File upload failed");
         }
-        filePayload = await uploadRes.json();
+        const uploadJson = await uploadRes.json();
+        filePayload = {
+          cid: uploadJson.cid,
+          key: uploadJson.encryptionKey,
+          fileName: uploadJson.fileName,
+          fileSize: uploadJson.fileSize,
+        };
         setProgress(30);
       }
 
