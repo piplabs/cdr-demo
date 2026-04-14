@@ -1,5 +1,5 @@
 // ============================================================
-// Deployed contract addresses on CDR Devnet (chain ID 90931)
+// Deployed contract addresses on Story Aeneid Testnet (chain ID 1315)
 // ============================================================
 
 export const CONTRACTS = {

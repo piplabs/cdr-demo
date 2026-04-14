@@ -39,6 +39,9 @@ export function useCDRClient() {
 
   const getWriteClient = async () => {
     if (!wallet) throw new Error("No wallet connected");
+    if (wallet.chainId !== `eip155:${cdrDevnet.id}`) {
+      await wallet.switchChain(cdrDevnet.id);
+    }
     const provider = await wallet.getEthereumProvider();
     const walletClient = createWalletClient({
       chain: cdrDevnet,
