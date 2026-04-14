@@ -11,6 +11,7 @@ import {InferenceWriteCondition} from "../src/InferenceWriteCondition.sol";
 import {FixedFeeCondition} from "../src/FixedFeeCondition.sol";
 import {WhitelistCondition} from "../src/WhitelistCondition.sol";
 import {TimeBasedCondition} from "../src/TimeBasedCondition.sol";
+import {DeadManSwitchCondition} from "../src/DeadManSwitchCondition.sol";
 
 /// @notice Deploys all demo contracts and wires them together.
 ///         Run with: forge script script/DeployAll.s.sol --rpc-url $RPC_URL --broadcast --private-key $PRIVATE_KEY
@@ -77,6 +78,9 @@ contract DeployAll is Script {
         TimeBasedCondition timeBasedCond = new TimeBasedCondition();
         console.log("TimeBasedCondition:", address(timeBasedCond));
 
+        DeadManSwitchCondition deadManSwitchCond = new DeadManSwitchCondition();
+        console.log("DeadManSwitchCondition:", address(deadManSwitchCond));
+
         vm.stopBroadcast();
 
         // ============================================================
@@ -90,5 +94,6 @@ contract DeployAll is Script {
         console.log("NEXT_PUBLIC_FIXED_FEE_CONDITION=", address(fixedFeeCond));
         console.log("NEXT_PUBLIC_WHITELIST_CONDITION=", address(whitelistCond));
         console.log("NEXT_PUBLIC_TIME_BASED_CONDITION=", address(timeBasedCond));
+        console.log("NEXT_PUBLIC_DEADMAN_SWITCH_CONDITION=", address(deadManSwitchCond));
     }
 }
