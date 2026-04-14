@@ -22,13 +22,20 @@ contract DeadManSwitchConditionTest is Test {
         vm.roll(1000);
         dms.register(42, 100, recipients, true);
 
-        (address creator, uint256 unlockBlock, uint256 duration, bool creatorCanRead, bool registered) =
-            dms.getVaultInfo(42);
+        (
+            address creator,
+            uint256 unlockBlock,
+            uint256 duration,
+            bool creatorCanRead,
+            bool registered,
+            bool publicAfterUnlock
+        ) = dms.getVaultInfo(42);
         assertEq(creator, address(this), "creator");
         assertEq(unlockBlock, 1100, "unlockBlock");
         assertEq(duration, 100, "duration");
         assertTrue(creatorCanRead, "creatorCanRead");
         assertTrue(registered, "registered");
+        assertFalse(publicAfterUnlock, "not public when recipients provided");
 
         assertTrue(dms.isWhitelisted(42, address(this)), "creator whitelisted");
         assertTrue(dms.isWhitelisted(42, alice), "alice whitelisted");
@@ -98,7 +105,7 @@ contract DeadManSwitchConditionTest is Test {
         _setupVault(10, 100, true);
         vm.roll(1050); // halfway through
         dms.extend(10);
-        (, uint256 unlockBlock,,,) = dms.getVaultInfo(10);
+        (, uint256 unlockBlock,,,,) = dms.getVaultInfo(10);
         assertEq(unlockBlock, 1150, "reset to current block + duration");
     }
 
@@ -181,5 +188,36 @@ contract DeadManSwitchConditionTest is Test {
 
     function test_getRemainingBlocks_unregisteredReturnsZero() public {
         assertEq(dms.getRemainingBlocks(999), 0);
+    }
+
+    function test_emptyRecipients_marksPublicAfterUnlock() public {
+        address[] memory recipients = new address[](0);
+        vm.roll(1000);
+        dms.register(77, 100, recipients, true);
+        (,,,,, bool publicAfterUnlock) = dms.getVaultInfo(77);
+        assertTrue(publicAfterUnlock, "public when no recipients");
+    }
+
+    function test_publicVault_allowsAnyCallerAfterUnlock() public {
+        address[] memory recipients = new address[](0);
+        vm.roll(1000);
+        dms.register(77, 100, recipients, true);
+        // Locked: non-creator cannot read even if public-after-unlock.
+        assertFalse(dms.checkReadCondition(77, "", "", bob), "bob locked before expiry");
+        vm.roll(1100);
+        assertTrue(dms.checkReadCondition(77, "", "", bob), "bob can read after expiry");
+        assertTrue(dms.checkReadCondition(77, "", "", carol), "carol can read after expiry");
+    }
+
+    function test_publicVault_doesNotLeakBeforeUnlock() public {
+        address[] memory recipients = new address[](0);
+        vm.roll(1000);
+        dms.register(77, 100, recipients, false);
+        vm.roll(1050);
+        assertFalse(dms.checkReadCondition(77, "", "", bob), "bob cannot read while locked");
+        assertFalse(
+            dms.checkReadCondition(77, "", "", address(this)),
+            "creator locked out when creatorCanRead=false"
+        );
     }
 }

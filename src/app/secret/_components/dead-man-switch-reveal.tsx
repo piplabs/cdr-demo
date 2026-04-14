@@ -18,6 +18,7 @@ type VaultState =
       duration: bigint;
       creatorCanRead: boolean;
       isCallerWhitelisted: boolean;
+      publicAfterUnlock: boolean;
       currentBlock: bigint;
     };
 
@@ -40,7 +41,7 @@ export function DeadManSwitchReveal(props: {
           abi: deadManSwitchConditionAbi,
           functionName: "getVaultInfo",
           args: [uuid],
-        }) as Promise<readonly [`0x${string}`, bigint, bigint, boolean, boolean]>,
+        }) as Promise<readonly [`0x${string}`, bigint, bigint, boolean, boolean, boolean]>,
         address
           ? (publicClient.readContract({
               address: CONTRACTS.DEADMAN_SWITCH_CONDITION,
@@ -51,7 +52,7 @@ export function DeadManSwitchReveal(props: {
           : Promise.resolve(false),
         publicClient.getBlockNumber(),
       ]);
-      const [creator, unlockBlock, duration, creatorCanRead, registered] = info;
+      const [creator, unlockBlock, duration, creatorCanRead, registered, publicAfterUnlock] = info;
       if (!registered) {
         setState({ kind: "error", message: "Vault not registered on DeadManSwitchCondition." });
         return;
@@ -63,6 +64,7 @@ export function DeadManSwitchReveal(props: {
         duration,
         creatorCanRead,
         isCallerWhitelisted: whitelisted,
+        publicAfterUnlock,
         currentBlock,
       });
     } catch (err: unknown) {
@@ -123,7 +125,7 @@ export function DeadManSwitchReveal(props: {
   const isUnlocked = remainingBlocks === 0n;
   const canDecrypt =
     isUnlocked
-      ? state.isCallerWhitelisted
+      ? state.isCallerWhitelisted || state.publicAfterUnlock
       : isCreator && state.creatorCanRead;
 
   return (
@@ -131,7 +133,11 @@ export function DeadManSwitchReveal(props: {
       <div className="rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3">
         <p className="text-xs font-medium text-white/50">Dead man's switch</p>
         {isUnlocked ? (
-          <p className="mt-1 text-sm text-green-300">Unlocked — recipients can decrypt.</p>
+          <p className="mt-1 text-sm text-green-300">
+            {state.publicAfterUnlock
+              ? "Unlocked — anyone can decrypt."
+              : "Unlocked — recipients can decrypt."}
+          </p>
         ) : (
           <p className="mt-1 text-sm text-amber-300">
             Locked — ~{formatBlocksAsDuration(remainingBlocks)} remaining

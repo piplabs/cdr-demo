@@ -79,7 +79,7 @@ export function DeadManSwitchTab(props: {
             abi: deadManSwitchConditionAbi,
             functionName: "getVaultInfo",
             args: [uuid],
-          })) as readonly [`0x${string}`, bigint, bigint, boolean, boolean];
+          })) as readonly [`0x${string}`, bigint, bigint, boolean, boolean, boolean];
           const [creator, unlockBlock, duration, creatorCanRead, registered] = info;
           if (!registered) continue;
           if (creator.toLowerCase() !== address.toLowerCase()) continue;

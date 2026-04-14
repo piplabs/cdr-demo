@@ -12,6 +12,7 @@ contract DeadManSwitchCondition {
         uint256 duration;
         bool creatorCanReadWhileLocked;
         bool registered;
+        bool publicAfterUnlock;
     }
 
     mapping(uint32 uuid => VaultInfo) internal _vaults;
@@ -37,7 +38,8 @@ contract DeadManSwitchCondition {
             unlockBlock: block.number + durationBlocks,
             duration: durationBlocks,
             creatorCanReadWhileLocked: creatorCanRead,
-            registered: true
+            registered: true,
+            publicAfterUnlock: recipients.length == 0
         });
         isWhitelisted[uuid][msg.sender] = true;
         for (uint256 i = 0; i < recipients.length; i++) {
@@ -53,11 +55,19 @@ contract DeadManSwitchCondition {
             uint256 unlockBlock,
             uint256 duration,
             bool creatorCanReadWhileLocked,
-            bool registered
+            bool registered,
+            bool publicAfterUnlock
         )
     {
         VaultInfo storage v = _vaults[uuid];
-        return (v.creator, v.unlockBlock, v.duration, v.creatorCanReadWhileLocked, v.registered);
+        return (
+            v.creator,
+            v.unlockBlock,
+            v.duration,
+            v.creatorCanReadWhileLocked,
+            v.registered,
+            v.publicAfterUnlock
+        );
     }
 
     function checkReadCondition(
@@ -68,9 +78,11 @@ contract DeadManSwitchCondition {
     ) external view returns (bool) {
         VaultInfo storage v = _vaults[uuid];
         if (!v.registered) return false;
-        if (!isWhitelisted[uuid][caller]) return false;
         if (caller == v.creator && v.creatorCanReadWhileLocked) return true;
-        return block.number >= v.unlockBlock;
+        bool unlocked = block.number >= v.unlockBlock;
+        if (unlocked && v.publicAfterUnlock) return true;
+        if (!isWhitelisted[uuid][caller]) return false;
+        return unlocked;
     }
 
     function extend(uint32 uuid) external {

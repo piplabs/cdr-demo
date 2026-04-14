@@ -467,6 +467,7 @@ export const deadManSwitchConditionAbi = [
       { name: "duration", type: "uint256" },
       { name: "creatorCanReadWhileLocked", type: "bool" },
       { name: "registered", type: "bool" },
+      { name: "publicAfterUnlock", type: "bool" },
     ],
     stateMutability: "view",
   },
