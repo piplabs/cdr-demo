@@ -520,10 +520,15 @@ export function DeadManSwitchTab(props: {
                   </div>
                   <button
                     onClick={() => extendVault(v.uuid)}
-                    disabled={extendingUuid === v.uuid}
+                    disabled={extendingUuid === v.uuid || unlocked}
+                    title={unlocked ? "Vault is already unlocked — cannot extend" : undefined}
                     className="liquid-button shrink-0 rounded-full px-3 py-1 text-xs font-medium disabled:opacity-40"
                   >
-                    {extendingUuid === v.uuid ? "Extending…" : "Extend"}
+                    {unlocked
+                      ? "Unlocked"
+                      : extendingUuid === v.uuid
+                      ? "Extending…"
+                      : "Extend"}
                   </button>
                 </li>
               );

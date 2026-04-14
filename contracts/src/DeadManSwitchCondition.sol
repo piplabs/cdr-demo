@@ -21,6 +21,7 @@ contract DeadManSwitchCondition {
     error NotRegistered();
     error NotCreator();
     error ZeroDuration();
+    error AlreadyUnlocked();
 
     function register(
         uint32 uuid,
@@ -76,6 +77,7 @@ contract DeadManSwitchCondition {
         VaultInfo storage v = _vaults[uuid];
         if (!v.registered) revert NotRegistered();
         if (v.creator != msg.sender) revert NotCreator();
+        if (block.number >= v.unlockBlock) revert AlreadyUnlocked();
         v.unlockBlock = block.number + v.duration;
     }
 

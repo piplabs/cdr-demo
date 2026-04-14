@@ -147,7 +147,7 @@ export function DeadManSwitchReveal(props: {
         </p>
       </div>
 
-      {isCreator && (
+      {isCreator && !isUnlocked && (
         <div className="flex flex-col gap-2">
           <button
             onClick={handleExtend}

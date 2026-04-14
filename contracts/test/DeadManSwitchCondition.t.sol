@@ -102,13 +102,18 @@ contract DeadManSwitchConditionTest is Test {
         assertEq(unlockBlock, 1150, "reset to current block + duration");
     }
 
-    function test_extend_worksAfterExpiry_reLocks() public {
+    function test_extend_revertsAfterExpiry() public {
         _setupVault(10, 100, true);
-        vm.roll(2000); // long after expiry
+        vm.roll(1100); // exactly at unlockBlock — already unlocked
+        vm.expectRevert(DeadManSwitchCondition.AlreadyUnlocked.selector);
         dms.extend(10);
-        (, uint256 unlockBlock,,,) = dms.getVaultInfo(10);
-        assertEq(unlockBlock, 2100, "re-locked");
-        assertFalse(dms.checkReadCondition(10, "", "", alice), "alice re-locked out");
+    }
+
+    function test_extend_revertsLongAfterExpiry() public {
+        _setupVault(10, 100, true);
+        vm.roll(2000);
+        vm.expectRevert(DeadManSwitchCondition.AlreadyUnlocked.selector);
+        dms.extend(10);
     }
 
     function test_extend_revertsForNonCreator() public {
