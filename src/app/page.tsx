@@ -40,7 +40,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="pb-16 pt-8">
         <p className="mb-5 text-[12px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-tertiary)]">
-          Confidential Data Routing
+          Confidential Data Rails
         </p>
         <h1 className="max-w-[860px] text-[44px] font-semibold leading-[1.05] tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[64px]">
           Private data, <span className="text-[color:var(--text-tertiary)]">predictable rails.</span>
