@@ -44,7 +44,14 @@
   "pnpm": {
     "overrides": {
       "@piplabs/cdr-contracts": "link:./cdr-sdk/packages/contracts",
-      "@piplabs/cdr-crypto": "link:./cdr-sdk/packages/crypto"
+      "@piplabs/cdr-crypto": "link:./cdr-sdk/packages/crypto",
+      "protobufjs@<7.5.5": ">=7.5.5",
+      "defu@<6.1.5": ">=6.1.5",
+      "picomatch@<2.3.2": ">=2.3.2 <3",
+      "picomatch@<4.0.4": "^4.0.4",
+      "axios@<1.15.0": ">=1.15.0",
+      "follow-redirects@<1.16.0": ">=1.16.0",
+      "brace-expansion@<1.1.13": ">=1.1.13"
     }
   }
 }
