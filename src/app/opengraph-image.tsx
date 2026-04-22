@@ -5,7 +5,21 @@ export const alt = "CDR — Privacy Infra for AI. Threshold-encrypted data vault
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+async function loadDiatype(): Promise<ArrayBuffer | null> {
+  try {
+    const res = await fetch(
+      new URL("./fonts/ABCDiatypeSemiMono-Regular.woff", import.meta.url),
+    );
+    if (!res.ok) return null;
+    return await res.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
 export default async function OpenGraphImage() {
+  const fontData = await loadDiatype();
+
   return new ImageResponse(
     (
       <div
@@ -19,8 +33,10 @@ export default async function OpenGraphImage() {
           background:
             "linear-gradient(180deg, #0b0f17 0%, #141924 100%)",
           color: "#f4f6fa",
-          fontFamily:
-            "Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+          fontFamily: "ABCDiatypeSemiMono, ui-monospace, monospace",
+          fontWeight: 400,
+          fontStyle: "normal",
+          letterSpacing: "-0.04em",
           position: "relative",
         }}
       >
@@ -85,8 +101,7 @@ export default async function OpenGraphImage() {
             <div
               style={{
                 fontSize: "30px",
-                fontWeight: 700,
-                letterSpacing: "-0.02em",
+                letterSpacing: "-0.04em",
                 color: "#f4f6fa",
                 display: "flex",
               }}
@@ -104,8 +119,7 @@ export default async function OpenGraphImage() {
               border: "1px solid rgba(255,255,255,0.14)",
               background: "rgba(255,255,255,0.04)",
               fontSize: "20px",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
+              letterSpacing: "-0.04em",
               color: "#f4f6fa",
             }}
           >
@@ -125,8 +139,7 @@ export default async function OpenGraphImage() {
             style={{
               fontSize: "92px",
               lineHeight: 1.04,
-              fontWeight: 700,
-              letterSpacing: "-0.035em",
+              letterSpacing: "-0.04em",
               color: "#f4f6fa",
               maxWidth: "1040px",
               display: "flex",
@@ -150,6 +163,7 @@ export default async function OpenGraphImage() {
               marginTop: "28px",
               fontSize: "28px",
               lineHeight: 1.4,
+              letterSpacing: "-0.04em",
               color: "#c9d1de",
               maxWidth: "1040px",
               display: "flex",
@@ -190,8 +204,7 @@ export default async function OpenGraphImage() {
               style={{
                 display: "flex",
                 fontSize: "11px",
-                fontWeight: 700,
-                letterSpacing: "0.22em",
+                letterSpacing: "-0.04em",
                 textTransform: "uppercase",
                 color: "#8a94a6",
               }}
@@ -221,7 +234,7 @@ export default async function OpenGraphImage() {
                     borderRadius: "999px",
                     background: "rgba(255,255,255,0.06)",
                     fontSize: "14px",
-                    fontWeight: 600,
+                    letterSpacing: "-0.04em",
                     color: "#e6ebf4",
                   }}
                 >
@@ -242,9 +255,8 @@ export default async function OpenGraphImage() {
           <div
             style={{
               fontSize: "16px",
-              fontWeight: 600,
               color: "#8a94a6",
-              letterSpacing: "0.08em",
+              letterSpacing: "-0.04em",
               textTransform: "uppercase",
               display: "flex",
             }}
@@ -254,6 +266,18 @@ export default async function OpenGraphImage() {
         </div>
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      fonts: fontData
+        ? [
+            {
+              name: "ABCDiatypeSemiMono",
+              data: fontData,
+              weight: 400,
+              style: "normal",
+            },
+          ]
+        : undefined,
+    },
   );
 }

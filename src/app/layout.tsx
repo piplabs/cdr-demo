@@ -1,12 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { CDRPrivyProvider } from "@/providers/privy-provider";
 import { WasmProvider } from "@/providers/wasm-provider";
 import { DesktopShell } from "@/components/desktop/desktop-shell";
 
-const inter = Inter({ subsets: ["latin"] });
+const diatype = localFont({
+  src: "./fonts/ABCDiatypeSemiMono-Regular.woff2",
+  variable: "--font-diatype",
+  weight: "400",
+  style: "normal",
+  display: "swap",
+  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+});
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://usecdr.dev";
 const SITE_NAME = "CDR";
@@ -94,8 +101,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning className={diatype.variable}>
+      <body className={diatype.className}>
         <Script
           id="theme-init"
           strategy="beforeInteractive"

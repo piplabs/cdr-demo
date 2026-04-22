@@ -128,9 +128,21 @@ html, body {
 body {
   @apply antialiased;
   color: var(--text-primary);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  font-feature-settings: "cv11", "ss01", "ss03";
+  font-family: var(--font-diatype), "ABC Diatype Semi-Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   min-height: 100vh;
+}
+
+/* ABC Diatype Semi-Mono is shipped as a single Regular cut.
+   Force every element — including anything with Tailwind font-weight, italic,
+   or tracking utilities, or inline styles — to 400 / upright / -0.04em. */
+html,
+body,
+body *,
+body *::before,
+body *::after {
+  font-weight: 400 !important;
+  font-style: normal !important;
+  letter-spacing: -0.04em !important;
 }
 
 .wallpaper { display: none; }
