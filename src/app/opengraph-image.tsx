@@ -39,7 +39,7 @@ export default async function OpenGraphImage() {
           letterSpacing: "-0.04em",
         }}
       >
-        {/* Top row: logo + domain */}
+        {/* Top row: Story wordmark + domain */}
         <div
           style={{
             display: "flex",
@@ -48,36 +48,15 @@ export default async function OpenGraphImage() {
             width: "100%",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "56px",
-                height: "56px",
-                borderRadius: "14px",
-                background: "#ffffff",
-              }}
-            >
-              {/* Story Protocol "S" mark */}
-              <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
-                <path
-                  fill="#000000"
-                  d="M16 3C9.4 3 5 6.2 5 11c0 4.5 3.4 6.7 10 7.9l2 .4c3.7.7 5 1.4 5 3.2 0 2-2.6 3.3-6 3.3s-6-1.3-6-3.3H5c0 5.2 4.6 8.5 11 8.5s11-3.3 11-8.5c0-4.5-3.4-6.7-10-7.9l-2-.4C11.3 13.5 10 12.8 10 11c0-2 2.6-3.3 6-3.3s6 1.3 6 3.3h5c0-4.8-4.4-8-11-8z"
-                />
-              </svg>
-            </div>
-            <div
-              style={{
-                fontSize: "30px",
-                letterSpacing: "-0.04em",
-                color: "#ffffff",
-                display: "flex",
-              }}
-            >
-              Confidential Data Rails
-            </div>
+          <div style={{ display: "flex", alignItems: "center", color: "#ffffff" }}>
+            {/* Story wordmark */}
+            <svg width="200" height="46" viewBox="0 0 401 92" fill="currentColor">
+              <path d="M34.9,92C54,92,69.5,80.5,69.5,61.1C69.5,43,56,30.3,34.9,30.3v13.4c-9.7,0-16.9-4.3-16.9-13.1c0-8.8,6.2-14,17.4-14c9.2,0,14.7,3.8,16.1,8.8h17C67.2,11.4,54,0,35,0C14.9,0,0.6,12.6,0.6,31c0,18.4,14.9,29.5,34.3,29.5V47.8c10.3,0,17.4,4.6,17.4,13.7c0,9-7.2,14.1-17.3,14.1c-9.1,0-15.4-4-17.3-9.5H0C2.5,80.6,15.8,92,34.9,92z" />
+              <polygon points="101,90 120.3,90 120.3,19.5 147.9,19.5 147.9,2.1 73.4,2.1 73.4,19.5 101,19.5" />
+              <path d="M192.9,92v-9c20.3,0,35.5-15.9,35.5-37h9.4c0-25-19.4-46-44.9-46c-27.4,0-45.1,19.1-45.1,46C147.8,71,167.4,92,192.9,92z M220.5,46h-8.6c0,11.4-8.4,19.8-19,19.8v8.6c-15.5,0-26.7-12.9-26.7-28.3c0-16.7,10-28,26.7-28C208.4,18,220.5,29.9,220.5,46z" />
+              <path d="M297.8,32.5c0,9-4.9,13.4-14.2,13.4h-17.8V19.6H283C292.3,19.6,297.8,23.5,297.8,32.5z M246.8,90h19.1V63.3h17.8c1.1,0,2.1-0.1,3.2-0.1L300.7,90h20.4L304,57.8c8.1-5.6,12.1-14.8,12.1-25.2c0-17-10.4-30.4-33.1-30.4h-36.2V90z" />
+              <path d="M354.8,90h18.4V52.9L401,2.2h-21.2l-25,46.9V90z M338.7,40.6h20.7L338.7,2.2h-20.7L338.7,40.6z" />
+            </svg>
           </div>
 
           <div
@@ -111,10 +90,11 @@ export default async function OpenGraphImage() {
               color: "#ffffff",
               maxWidth: "1040px",
               display: "flex",
-              flexWrap: "wrap",
+              flexDirection: "column",
             }}
           >
-            <span>Private data, predictable rails.</span>
+            <div style={{ display: "flex" }}>Private data on-chain</div>
+            <div style={{ display: "flex" }}>Confidential Data Rails Demo</div>
           </div>
           <div
             style={{
@@ -129,10 +109,10 @@ export default async function OpenGraphImage() {
             }}
           >
             <div style={{ display: "flex" }}>
-              Threshold encryption powered by a decentralized key network.
+              Store, secure, and share private data on-chain.
             </div>
             <div style={{ display: "flex" }}>
-              Store, share, and trade encrypted data with on-chain guarantees.
+              Threshold encryption powered by a decentralized network.
             </div>
           </div>
         </div>
@@ -151,9 +131,6 @@ export default async function OpenGraphImage() {
               display: "flex",
               alignItems: "center",
               gap: "12px",
-              padding: "10px 14px 10px 16px",
-              borderRadius: "14px",
-              border: "1px solid rgba(255,255,255,0.2)",
             }}
           >
             <div
