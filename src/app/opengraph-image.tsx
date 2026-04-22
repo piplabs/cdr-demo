@@ -84,8 +84,8 @@ export default async function OpenGraphImage() {
         >
           <div
             style={{
-              fontSize: "92px",
-              lineHeight: 1.04,
+              fontSize: "72px",
+              lineHeight: 1.08,
               letterSpacing: "-0.04em",
               color: "#ffffff",
               maxWidth: "1040px",
