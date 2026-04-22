@@ -51,6 +51,9 @@ contracts/cache/
 contracts/lib/
 contracts/out/
 
+# Claude Code local settings
+.claude/
+
 # docs
 docs/ai/
 docs/superpowers/

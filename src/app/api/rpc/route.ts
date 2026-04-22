@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL ?? "http://52.243.51.231:8545";
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL ?? "https://aeneid.storyrpc.io";
 
 export async function POST(request: Request) {
   try {

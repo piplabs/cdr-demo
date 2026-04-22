@@ -3,6 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "CDR: Privacy Infra for AI — threshold-encrypted data vaults on Story L1. Reference frontend with five end-to-end demos.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piplabs/cdr-demo.git"
+  },
+  "homepage": "https://github.com/piplabs/cdr-demo#readme",
+  "bugs": {
+    "url": "https://github.com/piplabs/cdr-demo/issues"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "cd cdr-sdk && pnpm install --frozen-lockfile && pnpm build --filter=@piplabs/cdr-contracts --filter=@piplabs/cdr-crypto --filter=@piplabs/cdr-sdk && cd .. && node scripts/copy-wasm.js && next build",

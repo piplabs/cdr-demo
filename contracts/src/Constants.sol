@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 /// @title Constants
-/// @notice Deployed contract addresses on CDR Devnet (chain ID 90931)
+/// @notice Deployed contract addresses on Story Aeneid Testnet (chain ID 1315)
 library Constants {
     // Story Protocol core
     address constant IP_ASSET_REGISTRY = 0x77319B4031e6eF1250907aa00018B8B1c67a244b;
