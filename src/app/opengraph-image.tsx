@@ -31,43 +31,14 @@ export default async function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "80px",
-          background:
-            "linear-gradient(180deg, #0b0f17 0%, #141924 100%)",
-          color: "#f4f6fa",
+          background: "#000000",
+          color: "#ffffff",
           fontFamily: "ABCDiatypeSemiMono, ui-monospace, monospace",
           fontWeight: 400,
           fontStyle: "normal",
           letterSpacing: "-0.04em",
-          position: "relative",
         }}
       >
-        {/* Indigo glow — top right */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-260px",
-            right: "-220px",
-            width: "900px",
-            height: "900px",
-            display: "flex",
-            background:
-              "radial-gradient(circle, rgba(79,70,229,0.45) 0%, rgba(79,70,229,0) 65%)",
-          }}
-        />
-        {/* Emerald glow — bottom left */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-260px",
-            left: "-220px",
-            width: "900px",
-            height: "900px",
-            display: "flex",
-            background:
-              "radial-gradient(circle, rgba(5,150,105,0.32) 0%, rgba(5,150,105,0) 65%)",
-          }}
-        />
-
         {/* Top row: logo + domain */}
         <div
           style={{
@@ -75,7 +46,6 @@ export default async function OpenGraphImage() {
             alignItems: "center",
             justifyContent: "space-between",
             width: "100%",
-            position: "relative",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
@@ -88,13 +58,12 @@ export default async function OpenGraphImage() {
                 height: "56px",
                 borderRadius: "14px",
                 background: "#ffffff",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
               }}
             >
               {/* Story Protocol "S" mark */}
               <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
                 <path
-                  fill="#0b0f17"
+                  fill="#000000"
                   d="M16 3C9.4 3 5 6.2 5 11c0 4.5 3.4 6.7 10 7.9l2 .4c3.7.7 5 1.4 5 3.2 0 2-2.6 3.3-6 3.3s-6-1.3-6-3.3H5c0 5.2 4.6 8.5 11 8.5s11-3.3 11-8.5c0-4.5-3.4-6.7-10-7.9l-2-.4C11.3 13.5 10 12.8 10 11c0-2 2.6-3.3 6-3.3s6 1.3 6 3.3h5c0-4.8-4.4-8-11-8z"
                 />
               </svg>
@@ -103,7 +72,7 @@ export default async function OpenGraphImage() {
               style={{
                 fontSize: "30px",
                 letterSpacing: "-0.04em",
-                color: "#f4f6fa",
+                color: "#ffffff",
                 display: "flex",
               }}
             >
@@ -117,11 +86,10 @@ export default async function OpenGraphImage() {
               alignItems: "center",
               padding: "10px 18px",
               borderRadius: "14px",
-              border: "1px solid rgba(255,255,255,0.14)",
-              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.2)",
               fontSize: "20px",
               letterSpacing: "-0.04em",
-              color: "#f4f6fa",
+              color: "#ffffff",
             }}
           >
             usecdr.dev
@@ -133,7 +101,6 @@ export default async function OpenGraphImage() {
           style={{
             display: "flex",
             flexDirection: "column",
-            position: "relative",
           }}
         >
           <div
@@ -141,23 +108,13 @@ export default async function OpenGraphImage() {
               fontSize: "92px",
               lineHeight: 1.04,
               letterSpacing: "-0.04em",
-              color: "#f4f6fa",
+              color: "#ffffff",
               maxWidth: "1040px",
               display: "flex",
               flexWrap: "wrap",
             }}
           >
-            <span>Private data,&nbsp;</span>
-            <span
-              style={{
-                backgroundImage:
-                  "linear-gradient(90deg, #a5b4fc 0%, #6ee7b7 55%, #93c5fd 100%)",
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              predictable rails.
-            </span>
+            <span>Private data, predictable rails.</span>
           </div>
           <div
             style={{
@@ -165,7 +122,7 @@ export default async function OpenGraphImage() {
               fontSize: "28px",
               lineHeight: 1.4,
               letterSpacing: "-0.04em",
-              color: "#c9d1de",
+              color: "#a1a1a1",
               maxWidth: "1040px",
               display: "flex",
               flexDirection: "column",
@@ -187,7 +144,6 @@ export default async function OpenGraphImage() {
             alignItems: "center",
             justifyContent: "space-between",
             width: "100%",
-            position: "relative",
           }}
         >
           <div
@@ -197,8 +153,7 @@ export default async function OpenGraphImage() {
               gap: "12px",
               padding: "10px 14px 10px 16px",
               borderRadius: "14px",
-              border: "1px solid rgba(255,255,255,0.14)",
-              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.2)",
             }}
           >
             <div
@@ -207,7 +162,7 @@ export default async function OpenGraphImage() {
                 fontSize: "11px",
                 letterSpacing: "-0.04em",
                 textTransform: "uppercase",
-                color: "#8a94a6",
+                color: "#a1a1a1",
               }}
             >
               Demo
@@ -217,38 +172,26 @@ export default async function OpenGraphImage() {
                 display: "flex",
                 width: "1px",
                 height: "18px",
-                background: "rgba(255,255,255,0.14)",
+                background: "rgba(255,255,255,0.2)",
               }}
             />
             <div style={{ display: "flex", gap: "8px" }}>
-              {[
-                { label: "Private Storage", dot: "#818cf8" },
-                { label: "Data Marketplace", dot: "#34d399" },
-              ].map((pill) => (
+              {["Private Storage", "Data Marketplace"].map((label) => (
                 <div
-                  key={pill.label}
+                  key={label}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
                     padding: "6px 12px",
                     borderRadius: "999px",
-                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.2)",
                     fontSize: "14px",
                     letterSpacing: "-0.04em",
-                    color: "#e6ebf4",
+                    color: "#ffffff",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "7px",
-                      height: "7px",
-                      borderRadius: "999px",
-                      background: pill.dot,
-                    }}
-                  />
-                  {pill.label}
+                  {label}
                 </div>
               ))}
             </div>
@@ -256,7 +199,7 @@ export default async function OpenGraphImage() {
           <div
             style={{
               fontSize: "16px",
-              color: "#8a94a6",
+              color: "#a1a1a1",
               letterSpacing: "-0.04em",
               textTransform: "uppercase",
               display: "flex",
