@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "ABCDiatypeSemiMono";
+  src:
+    url("/fonts/ABCDiatypeSemiMono-Regular.woff2") format("woff2"),
+    url("/fonts/ABCDiatypeSemiMono-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
 
@@ -128,7 +138,7 @@ html, body {
 body {
   @apply antialiased;
   color: var(--text-primary);
-  font-family: var(--font-diatype), "ABC Diatype Semi-Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "ABCDiatypeSemiMono", ui-monospace, SFMono-Regular, Menlo, monospace;
   min-height: 100vh;
 }
 

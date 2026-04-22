@@ -6,10 +6,11 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 async function loadDiatype(): Promise<ArrayBuffer | null> {
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://usecdr.dev");
   try {
-    const res = await fetch(
-      new URL("./fonts/ABCDiatypeSemiMono-Regular.woff", import.meta.url),
-    );
+    const res = await fetch(`${base}/fonts/ABCDiatypeSemiMono-Regular.woff`);
     if (!res.ok) return null;
     return await res.arrayBuffer();
   } catch {

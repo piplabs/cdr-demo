@@ -25,16 +25,14 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
-          "var(--font-diatype)",
-          "ABC Diatype Semi-Mono",
+          "ABCDiatypeSemiMono",
           "ui-monospace",
           "SFMono-Regular",
           "Menlo",
           "monospace",
         ],
         mono: [
-          "var(--font-diatype)",
-          "ABC Diatype Semi-Mono",
+          "ABCDiatypeSemiMono",
           "ui-monospace",
           "SFMono-Regular",
           "Menlo",
