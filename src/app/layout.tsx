@@ -1,12 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { CDRPrivyProvider } from "@/providers/privy-provider";
 import { WasmProvider } from "@/providers/wasm-provider";
 import { DesktopShell } from "@/components/desktop/desktop-shell";
-
-const inter = Inter({ subsets: ["latin"] });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://usecdr.dev";
 const SITE_NAME = "CDR";
@@ -95,7 +92,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body>
         <Script
           id="theme-init"
           strategy="beforeInteractive"

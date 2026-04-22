@@ -3,7 +3,42 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
+    fontWeight: {
+      thin: "400",
+      extralight: "400",
+      light: "400",
+      normal: "400",
+      medium: "400",
+      semibold: "400",
+      bold: "400",
+      extrabold: "400",
+      black: "400",
+    },
+    letterSpacing: {
+      tighter: "-0.04em",
+      tight: "-0.04em",
+      normal: "-0.04em",
+      wide: "-0.04em",
+      wider: "-0.04em",
+      widest: "-0.04em",
+    },
     extend: {
+      fontFamily: {
+        sans: [
+          "ABCDiatypeSemiMono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace",
+        ],
+        mono: [
+          "ABCDiatypeSemiMono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace",
+        ],
+      },
       colors: {
         brand: {
           50: "#f0f4ff",
