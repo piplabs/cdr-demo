@@ -26,7 +26,7 @@
     "@piplabs/cdr-sdk": "link:./cdr-sdk/packages/sdk",
     "@privy-io/react-auth": "^2",
     "@storacha/client": "^2.1.3",
-    "next": "^14.2",
+    "next": "^15.5.15",
     "openai": "^6.33.0",
     "react": "^18.3",
     "react-dom": "^18.3",
