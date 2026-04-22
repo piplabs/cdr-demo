@@ -93,7 +93,7 @@ export default async function OpenGraphImage() {
               flexDirection: "column",
             }}
           >
-            <div style={{ display: "flex" }}>Private data on-chain</div>
+            <div style={{ display: "flex" }}>Private data on-chain:</div>
             <div style={{ display: "flex" }}>Confidential Data Rails Demo</div>
           </div>
           <div
