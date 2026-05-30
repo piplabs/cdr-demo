@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "CDR: Privacy Infra for AI — threshold-encrypted data vaults on Story L1. Reference frontend with five end-to-end demos.",
+  "description": "CDR: Privacy Infra for AI \u2014 threshold-encrypted data vaults on Story L1. Reference frontend with five end-to-end demos.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -51,7 +51,8 @@
       "picomatch@<4.0.4": "^4.0.4",
       "axios@<1.15.0": ">=1.15.0",
       "follow-redirects@<1.16.0": ">=1.16.0",
-      "brace-expansion@<1.1.13": ">=1.1.13"
+      "brace-expansion@<1.1.13": ">=1.1.13",
+      "next": "15.5.16"
     }
   }
 }
