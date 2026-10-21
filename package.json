@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "CDR: Privacy Infra for AI \u2014 threshold-encrypted data vaults on Story L1. Reference frontend with five end-to-end demos.",
+  "description": "CDR: Privacy Infra for AI — threshold-encrypted data vaults on Story L1. Reference frontend with five end-to-end demos.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
     "@piplabs/cdr-sdk": "link:./cdr-sdk/packages/sdk",
     "@privy-io/react-auth": "^2",
     "@storacha/client": "^2.1.3",
-    "next": "^15.5.15",
+    "next": "^15.5.28",
     "openai": "^6.33.0",
     "react": "^18.3",
     "react-dom": "^18.3",
@@ -52,7 +52,8 @@
       "axios@<1.15.0": ">=1.15.0",
       "follow-redirects@<1.16.0": ">=1.16.0",
       "brace-expansion@<1.1.13": ">=1.1.13",
-      "next": "15.5.16"
+      "next": "15.5.28",
+      "sharp": "^0.35.5"
     }
   }
 }
